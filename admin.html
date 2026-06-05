@@ -865,8 +865,13 @@
         if (delBtn) delBtn.addEventListener("click", async () => {
           if (!confirm(`Delete order #${o.code} from ${o.staff_name}? This can't be undone.`)) return;
           delBtn.disabled = true;
-          await DB.deleteOrder(o.id);
-          await load();
+          try {
+            await DB.deleteOrder(o.id);
+            await load();
+          } catch (err) {
+            delBtn.disabled = false;
+            alert(`Delete failed.\n\n${err.message || err}\n\nThe order is still in the database. If this keeps happening, check the Supabase RLS policies for the orders / order_items tables.`);
+          }
         });
         return card;
       }

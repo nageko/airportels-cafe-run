@@ -125,17 +125,17 @@
       if (idx >= 0) { all[idx].status = next[all[idx].status]; writeLS(LS_ORDERS, all); }
     },
 
-    // Delete an order outright (admin only).
+    // Delete an order outright (admin only). Throws on remote failure
+    // so callers can tell the user something actually went wrong.
     async deleteOrder(orderId) {
       if (hasSupabase) {
-        try {
-          await sb.from("order_items").delete().eq("order_id", orderId);
-          await sb.from("orders").delete().eq("id", orderId);
-        } catch (e) { console.warn("Supabase delete failed:", e.message || e); }
+        const { error: itemsErr } = await sb.from("order_items").delete().eq("order_id", orderId);
+        if (itemsErr) throw new Error(`Couldn't delete order items: ${itemsErr.message}`);
+        const { error: orderErr } = await sb.from("orders").delete().eq("id", orderId);
+        if (orderErr) throw new Error(`Couldn't delete order: ${orderErr.message}`);
       }
       const all = readLS(LS_ORDERS, []);
-      const filtered = all.filter(o => o.id !== orderId);
-      writeLS(LS_ORDERS, filtered);
+      writeLS(LS_ORDERS, all.filter(o => o.id !== orderId));
     },
 
     // Dev helper — wipe today's local orders.

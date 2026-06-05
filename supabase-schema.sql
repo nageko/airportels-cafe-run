@@ -47,5 +47,8 @@ create policy "anon insert staff"      on public.staff       for insert with che
 create policy "anon read orders"       on public.orders      for select using (true);
 create policy "anon insert orders"     on public.orders      for insert with check (true);
 create policy "anon update orders"     on public.orders      for update using (true);
+create policy "anon delete orders"     on public.orders      for delete using (true);
 create policy "anon read items"        on public.order_items for select using (true);
 create policy "anon insert items"      on public.order_items for insert with check (true);
+create policy "anon update items"      on public.order_items for update using (true);
+create policy "anon delete items"      on public.order_items for delete using (true);
