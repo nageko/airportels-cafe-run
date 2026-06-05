@@ -15,7 +15,6 @@
   };
 
   // ───── small helpers ─────
-  const money = (n) => `฿${Math.round(n)}`;
   const uid   = () => Math.random().toString(36).slice(2, 9);
   const toast = (msg) => {
     const el = $("#toast"); el.textContent = msg; el.classList.add("show");
@@ -258,7 +257,6 @@
             ${d.temps.map(t => `<span class="tag">${t}</span>`).join("")}
           </div>
         </div>
-        <div class="drink-price"><span class="currency">฿</span>${d.price}</div>
       `;
       card.addEventListener("click", () => openCustomize(d));
       list.appendChild(card);
@@ -316,15 +314,14 @@
     note.innerHTML = `<label for="item-note">Note (optional)</label><textarea id="item-note" class="note-input" maxlength="80" placeholder="e.g. extra hot, no foam"></textarea>`;
     body.appendChild(note);
 
-    body.querySelector("#q-minus").addEventListener("click", () => { state.customize.qty = Math.max(1, state.customize.qty - 1); $("#q-val").textContent = state.customize.qty; updatePrice(); });
-    body.querySelector("#q-plus" ).addEventListener("click", () => { state.customize.qty = Math.min(20, state.customize.qty + 1); $("#q-val").textContent = state.customize.qty; updatePrice(); });
+    body.querySelector("#q-minus").addEventListener("click", () => { state.customize.qty = Math.max(1, state.customize.qty - 1); $("#q-val").textContent = state.customize.qty; });
+    body.querySelector("#q-plus" ).addEventListener("click", () => { state.customize.qty = Math.min(20, state.customize.qty + 1); $("#q-val").textContent = state.customize.qty; });
     body.querySelector("#item-note").addEventListener("input", (e) => { state.customize.item_note = e.target.value; });
 
-    updatePrice();
     openSheet("#sheet-customize");
   }
 
-  function group(label, options, key, showDelta) {
+  function group(label, options, key) {
     const g = document.createElement("div");
     g.className = "opt-group";
     g.innerHTML = `<div class="opt-label">${label}</div><div class="opt-row"></div>`;
@@ -333,8 +330,7 @@
       const chip = document.createElement("button");
       chip.className = "chip";
       chip.dataset.key = key; chip.dataset.value = o.id;
-      const delta = showDelta && o.delta ? ` <span class="delta">+฿${o.delta}</span>` : "";
-      chip.innerHTML = `${o.label}${delta}`;
+      chip.innerHTML = `${o.label}`;
       chip.setAttribute("aria-selected", String(state.customize[key] === o.id));
       chip.addEventListener("click", () => {
         state.customize[key] = o.id;
@@ -345,28 +341,14 @@
           openCustomize(state.editingDrink, preserved);
           return;
         }
-        updatePrice();
       });
       row.appendChild(chip);
     });
     return g;
   }
 
-  function unitPrice(drink, c) {
-    let p = drink.price;
-    if (c.size) p += (MENU_OPTIONS.size.find(s => s.id === c.size)?.delta || 0);
-    if (c.milk) p += (MENU_OPTIONS.milk.find(s => s.id === c.milk)?.delta || 0);
-    return p;
-  }
-  function updatePrice() {
-    const d = state.editingDrink, c = state.customize;
-    const p = unitPrice(d, c) * c.qty;
-    $("#cust-price").textContent = money(p);
-  }
-
   $("#cust-add").addEventListener("click", () => {
     const d = state.editingDrink, c = state.customize;
-    const unit = unitPrice(d, c);
     state.cart.push({
       uid: uid(),
       drink_id: d.id,
@@ -374,9 +356,7 @@
       qty: c.qty,
       temp: c.temp,
       size: c.size, sugar: c.sugar, ice: c.ice, milk: c.milk,
-      item_note: c.item_note,
-      unit_price: unit,
-      price: unit * c.qty
+      item_note: c.item_note
     });
     closeSheets();
     renderCartBar();
@@ -387,9 +367,7 @@
   function renderCartBar() {
     const bar = $("#cart-bar");
     const items = state.cart.reduce((n, it) => n + it.qty, 0);
-    const total = state.cart.reduce((n, it) => n + it.price, 0);
     $("#cart-count").textContent = items;
-    $("#cart-total").textContent = money(total);
     bar.classList.toggle("hidden", items === 0);
   }
   $("#cart-bar").addEventListener("click", openCart);
@@ -419,7 +397,6 @@
             <div class="name">${it.name}</div>
             <div class="opts">${describeLine(it)}</div>
           </div>
-          <div class="price">${money(it.price)}</div>
           <div class="actions">
             <button class="qty-btn" data-act="dec" data-uid="${it.uid}">−</button>
             <span class="qty-val">${it.qty}</span>
@@ -433,17 +410,15 @@
       btn.addEventListener("click", () => {
         const u = btn.dataset.uid;
         const it = state.cart.find(x => x.uid === u); if (!it) return;
-        if (btn.dataset.act === "inc") { it.qty++;            it.price = it.unit_price * it.qty; }
-        if (btn.dataset.act === "dec") { it.qty = Math.max(0, it.qty - 1); it.price = it.unit_price * it.qty; if (it.qty === 0) state.cart = state.cart.filter(x => x.uid !== u); }
+        if (btn.dataset.act === "inc") { it.qty++; }
+        if (btn.dataset.act === "dec") { it.qty = Math.max(0, it.qty - 1); if (it.qty === 0) state.cart = state.cart.filter(x => x.uid !== u); }
         if (btn.dataset.act === "rm")  { state.cart = state.cart.filter(x => x.uid !== u); }
         openCart(); renderCartBar();
       });
     });
 
     const count = state.cart.reduce((n, it) => n + it.qty, 0);
-    const total = state.cart.reduce((n, it) => n + it.price, 0);
     $("#cart-items-count").textContent = count;
-    $("#cart-grand").textContent = money(total);
     $("#cart-send").toggleAttribute("disabled", count === 0);
 
     openSheet("#sheet-cart");
@@ -457,7 +432,7 @@
     const items = state.cart.map(it => ({
       drink_id: it.drink_id, name: it.name, qty: it.qty,
       size: it.size, sugar: it.sugar, ice: it.ice, milk: it.milk,
-      temp: it.temp, price: it.unit_price, item_note: it.item_note
+      temp: it.temp, item_note: it.item_note
     }));
     const note = $("#order-note").value.trim();
     const order = await DB.createOrder({ staff: state.staff, items, note });
@@ -473,7 +448,7 @@
     $("#order-code").textContent = order.code;
     const summary = $("#order-summary");
     summary.innerHTML = order.items.map(it => `
-      <div class="line"><span><span class="qty">${it.qty}×</span>${it.name}</span><span>${money(it.price * it.qty)}</span></div>
+      <div class="line"><span><span class="qty">${it.qty}×</span>${it.name}</span></div>
     `).join("");
     $("#confirm-body").textContent =
       order.room

@@ -257,7 +257,6 @@
   <script>
     (function () {
       const $ = (s) => document.querySelector(s);
-      const money = (n) => `฿${Math.round(n)}`;
       const time = (iso) => {
         const d = new Date(iso); const hh = String(d.getHours()).padStart(2, "0"); const mm = String(d.getMinutes()).padStart(2, "0");
         return `${hh}:${mm}`;
@@ -275,10 +274,7 @@
         return parts.join(" · ");
       }
 
-      function orderTotal(o) { return o.items.reduce((n, it) => n + (it.price * it.qty), 0); }
-
       function renderOrder(o) {
-        const total = orderTotal(o);
         const card = document.createElement("div");
         card.className = "ord-card";
         const nextLabel = o.status === "queued" ? "Start brewing" : o.status === "brewing" ? "Mark delivered" : "Delivered";
@@ -304,7 +300,6 @@
           </div>
           ${o.note ? `<div class="ord-note">${o.note}</div>` : ""}
           <div class="ord-foot">
-            <span class="total">${money(total)}</span>
             <span class="spacer"></span>
             ${isDone
               ? `<button class="done" disabled>Done</button>`
