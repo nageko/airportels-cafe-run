@@ -58,6 +58,27 @@
     }
     .back-link:hover { opacity: 1; }
 
+    /* paired company × cafe logo lockup */
+    .admin-brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .admin-brand .brand-logo {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #fff;
+      box-shadow: 0 1px 0 color-mix(in oklch, var(--cafe-ink) 22%, transparent),
+                  0 2px 10px color-mix(in oklch, var(--cafe-ink) 18%, transparent);
+    }
+    .admin-brand .brand-logo--cafe { background: #1f4a47; }
+    .admin-brand .brand-sep {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 300;
+      color: color-mix(in oklch, var(--cafe-ink) 35%, transparent);
+      line-height: 1;
+    }
+
     /* stat strip */
     .stats {
       display: grid;
@@ -417,11 +438,21 @@
     }
     .cs-head .brands {
       display: flex; align-items: center; gap: 10px;
-      font-family: var(--font-mono); font-size: 10px;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: rgba(253,246,227,0.72);
     }
-    .cs-head .brands strong { color: #f4c14c; letter-spacing: 0.18em; font-weight: 500; }
+    .cs-head .brands .brand-logo {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(253,246,227,0.18);
+    }
+    .cs-head .brands .brand-logo--cafe { background: #1f4a47; }
+    .cs-head .brands .brand-sep {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 300;
+      color: rgba(253,246,227,0.5);
+      line-height: 1;
+    }
     .cs-head h1 {
       font-family: var(--font-display);
       font-size: 32px;
@@ -688,6 +719,11 @@
   <div class="admin-wrap" id="admin-wrap" style="display:none;">
     <header class="admin-head">
       <div>
+        <div class="admin-brand">
+          <img class="brand-logo" src="assets/airportels-logo.jpg" alt="AIRPORTELS" />
+          <span class="brand-sep">|</span>
+          <img class="brand-logo brand-logo--cafe" src="assets/cafe-gather-logo.jpeg" alt="Cafe Gather" />
+        </div>
         <div class="kicker">Cafe Run · Behind the Counter</div>
         <h1>Today's queue</h1>
       </div>
@@ -1057,7 +1093,11 @@
         document.querySelector("#sheet-mount").innerHTML = `
           <div class="cafe-sheet" id="cafe-sheet-card">
             <div class="cs-head">
-              <div class="brands"><strong>AIRPORTELS</strong> × Cafe Gather</div>
+              <div class="brands">
+                <img class="brand-logo brand-logo--sm" src="assets/airportels-logo.jpg" alt="AIRPORTELS" />
+                <span class="brand-sep brand-sep--sm">|</span>
+                <img class="brand-logo brand-logo--sm brand-logo--cafe" src="assets/cafe-gather-logo.jpeg" alt="Cafe Gather" />
+              </div>
               <h1>Cafe Run · ${filterLabel}</h1>
               <div class="sub">${fmtDateLong()} · printed ${fmtTimeShort(new Date().toISOString())}</div>
               <div class="pill-row">
