@@ -9,7 +9,7 @@
   const state = {
     staff: null,
     activeCat: window.MENU_CATEGORIES[0].id,
-    cart: [],         // { uid, drink, qty, size, sugar, ice, milk, temp, item_note, lineTotal }
+    cart: [],         // { uid, drink_id, name, qty, temp, sugar, item_note }
     editingDrink: null,
     customize: null   // working draft while customize sheet is open
   };
@@ -270,7 +270,7 @@
       qty: 1,
       temp: drink.temps[0],
       sugar: drink.opts.includes("sugar") ? "50" : null,
-      milk: drink.opts.includes("milk") ? "whole" : null,
+      customName: "",
       item_note: ""
     };
 
@@ -285,11 +285,23 @@
     visual.innerHTML = renderCup(drink);
     body.appendChild(visual);
 
+    // Custom-drink name input (Other category)
+    if (drink.custom) {
+      const nameField = document.createElement("div");
+      nameField.className = "field";
+      nameField.style.marginBottom = "18px";
+      nameField.innerHTML = `<label for="custom-name">Drink name</label>
+        <input id="custom-name" type="text" maxlength="60" placeholder="e.g. Iced Hojicha Latte, Espresso Tonic" autocomplete="off" />`;
+      body.appendChild(nameField);
+      nameField.querySelector("#custom-name").addEventListener("input", (e) => {
+        state.customize.customName = e.target.value;
+      });
+    }
+
     // temp
     if (drink.temps.length > 1) body.appendChild(group("Temperature", drink.temps.map(t => ({ id: t, label: t === "hot" ? "Hot" : "Iced" })), "temp"));
 
     if (drink.opts.includes("sugar")) body.appendChild(group("Sugar level", MENU_OPTIONS.sugar, "sugar"));
-    if (drink.opts.includes("milk"))  body.appendChild(group("Milk",        MENU_OPTIONS.milk,  "milk"));
 
     // qty
     const qty = document.createElement("div");
@@ -338,18 +350,28 @@
 
   $("#cust-add").addEventListener("click", () => {
     const d = state.editingDrink, c = state.customize;
+    let lineName = d.name;
+    if (d.custom) {
+      const typed = (c.customName || "").trim();
+      if (!typed) {
+        toast("Type the drink name first");
+        const el = $("#custom-name"); if (el) el.focus();
+        return;
+      }
+      lineName = typed;
+    }
     state.cart.push({
       uid: uid(),
       drink_id: d.id,
-      name: d.name,
+      name: lineName,
       qty: c.qty,
       temp: c.temp,
-      sugar: c.sugar, milk: c.milk,
+      sugar: c.sugar,
       item_note: c.item_note
     });
     closeSheets();
     renderCartBar();
-    toast(`Added · ${d.name}`);
+    toast(`Added · ${lineName}`);
   });
 
   // ───── cart ─────
@@ -366,7 +388,6 @@
     if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
     if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
       parts.push(`Sugar ${it.sugar}%`);
-    if (it.milk && it.milk !== "whole") parts.push(`${MENU_OPTIONS.milk.find(o=>o.id===it.milk)?.label || it.milk} milk`);
     if (it.item_note) parts.push(`“${it.item_note}”`);
     return parts.join(" · ");
   }
@@ -420,7 +441,7 @@
     $("#cart-send").setAttribute("disabled", "true");
     const items = state.cart.map(it => ({
       drink_id: it.drink_id, name: it.name, qty: it.qty,
-      sugar: it.sugar, milk: it.milk,
+      sugar: it.sugar,
       temp: it.temp, item_note: it.item_note
     }));
     const note = $("#order-note").value.trim();

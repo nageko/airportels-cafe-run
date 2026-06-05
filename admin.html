@@ -814,7 +814,6 @@
         if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
         if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
           parts.push(`Sugar ${it.sugar}%`);
-        if (it.milk && it.milk !== "whole") parts.push(`${OPT.milk.find(o=>o.id===it.milk)?.label || it.milk} milk`);
         if (it.item_note) parts.push(`"${it.item_note}"`);
         return parts.join(" · ");
       }
@@ -947,10 +946,6 @@
         if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "") {
           const lbl = (OPT.sugar.find(o => o.id === String(it.sugar))?.label) || `Sugar ${it.sugar}%`;
           opts.push({ text: `Sugar: ${lbl}` });
-        }
-        if (it.milk && it.milk !== "whole") {
-          const lbl = OPT.milk.find(o => o.id === it.milk)?.label || it.milk;
-          opts.push({ text: `${lbl} milk` });
         }
         return opts;
       }

@@ -297,27 +297,40 @@ a { color: inherit; }
   .cart-bar { position: absolute; }
 }
 
-/* ───────── bottom sheet (customize + cart) ───────── */
+/* ───────── bottom sheet (customize + cart) ─────────
+   Pinned to the viewport on mobile (the .phone wrapper grows taller than the
+   screen when the drink list is long, so position:absolute on .phone anchors
+   the sheet far below the fold). On desktop the .phone becomes a centered
+   card; we contain the sheet inside it.
+*/
 .sheet-veil {
-  position: absolute; inset: 0; z-index: 10;
+  position: fixed; inset: 0; z-index: 100;
   background: color-mix(in oklch, var(--fg) 45%, transparent);
   opacity: 0; pointer-events: none;
   transition: opacity .2s ease;
 }
 .sheet-veil.open { opacity: 1; pointer-events: auto; }
 .sheet {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  z-index: 11;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: 430px;
+  z-index: 101;
   background: var(--bg);
   border-radius: var(--r-sheet) var(--r-sheet) 0 0;
-  transform: translateY(100%);
+  transform: translate(-50%, 100%);
   transition: transform .25s cubic-bezier(.2,.8,.2,1);
-  max-height: 88%;
+  max-height: 88dvh;
   display: flex; flex-direction: column;
   box-shadow: 0 -10px 30px -10px color-mix(in oklch, var(--fg) 30%, transparent);
 }
-.sheet.open { transform: translateY(0); }
+.sheet.open { transform: translate(-50%, 0); }
+@media (min-width: 700px) {
+  .sheet-veil { position: absolute; }
+  .sheet { position: absolute; left: 0; right: 0; width: auto; max-width: none; transform: translateY(100%); }
+  .sheet.open { transform: translateY(0); }
+}
 .sheet-grip { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 10px auto 0; }
 .sheet-close {
   position: absolute; top: 14px; right: 14px;
