@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f4a47" />
+  <title>AIRPORTELS · Cafe Run — Today</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Admin overrides — deep-teal staff aesthetic */
+    body { background: var(--cafe); color: var(--cafe-ink); }
+    .canvas-bg {
+      background:
+        radial-gradient(1000px 600px at 0% -10%, color-mix(in oklch, var(--cafe-ink) 6%, transparent), transparent 60%),
+        var(--cafe);
+    }
+    .admin-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px 80px;
+      min-height: 100dvh;
+    }
+    .admin-head {
+      display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid color-mix(in oklch, var(--cafe-ink) 18%, transparent);
+      margin-bottom: 24px;
+    }
+    .admin-head .kicker {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: color-mix(in oklch, var(--cafe-ink) 70%, transparent);
+      margin-bottom: 6px;
+    }
+    .admin-head h1 {
+      color: var(--cafe-ink);
+      font-size: clamp(34px, 5vw, 48px);
+      letter-spacing: -0.02em;
+      font-weight: 500;
+    }
+    .admin-head .meta {
+      font-family: var(--font-mono); font-size: 12px;
+      color: color-mix(in oklch, var(--cafe-ink) 70%, transparent);
+      letter-spacing: 0.06em; line-height: 1.6;
+      text-align: right;
+    }
+    .back-link {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cafe-ink); opacity: 0.7;
+      text-decoration: none;
+      padding: 6px 10px; border-radius: var(--r-pill);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 22%, transparent);
+    }
+    .back-link:hover { opacity: 1; }
+
+    /* stat strip */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .stat {
+      background: color-mix(in oklch, var(--cafe-ink) 6%, transparent);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 14%, transparent);
+      border-radius: var(--r-card);
+      padding: 14px 16px;
+    }
+    .stat .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: color-mix(in oklch, var(--cafe-ink) 65%, transparent); }
+    .stat .val { font-family: var(--font-display); font-size: 32px; color: var(--cafe-ink); font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 4px; }
+    .stat.accent .val { color: var(--accent); }
+    @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* lanes */
+    .lanes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .lanes { grid-template-columns: 1fr; } }
+    .lane {
+      background: color-mix(in oklch, var(--cafe-ink) 5%, transparent);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 14%, transparent);
+      border-radius: var(--r-card);
+      padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+      min-height: 240px;
+    }
+    .lane-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 1px solid color-mix(in oklch, var(--cafe-ink) 14%, transparent);
+    }
+    .lane-head .name {
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--cafe-ink);
+    }
+    .lane-head .count {
+      font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+      font-size: 12px;
+      color: color-mix(in oklch, var(--cafe-ink) 65%, transparent);
+    }
+    .lane.queued    .name { color: var(--accent); }
+    .lane.brewing   .name { color: color-mix(in oklch, var(--cafe-ink) 95%, transparent); }
+    .lane.delivered .name { color: color-mix(in oklch, var(--cafe-ink) 50%, transparent); }
+
+    .ord-card {
+      background: var(--cafe-ink);
+      color: var(--cafe);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .ord-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .ord-code { font-family: var(--font-mono); font-size: 18px; color: var(--cafe); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+    .ord-time { font-family: var(--font-mono); font-size: 11px; color: color-mix(in oklch, var(--cafe) 60%, transparent); font-variant-numeric: tabular-nums; }
+    .ord-who  { font-family: var(--font-display); font-size: 18px; color: var(--cafe); line-height: 1.2; }
+    .ord-room {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 10px;
+      padding: 2px 7px;
+      background: var(--surface-2);
+      color: var(--cafe);
+      border-radius: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .ord-items {
+      border-top: 1px dashed color-mix(in oklch, var(--cafe) 22%, transparent);
+      padding-top: 8px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .ord-line {
+      display: flex; gap: 8px; align-items: baseline;
+      font-size: 13px; color: var(--cafe);
+    }
+    .ord-line .q { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--cafe); min-width: 22px; }
+    .ord-line .o { color: color-mix(in oklch, var(--cafe) 65%, transparent); font-size: 11.5px; }
+    .ord-note {
+      font-size: 12px;
+      color: color-mix(in oklch, var(--cafe) 75%, transparent);
+      background: color-mix(in oklch, var(--surface-2) 70%, transparent);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-style: italic;
+    }
+    .ord-foot { display: flex; gap: 8px; align-items: center; padding-top: 4px; }
+    .ord-foot .total { font-family: var(--font-mono); font-size: 13px; color: var(--cafe); font-variant-numeric: tabular-nums; }
+    .ord-foot .spacer { flex: 1; }
+    .ord-foot button {
+      background: var(--cafe);
+      color: var(--cafe-ink);
+      font-family: var(--font-body);
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: var(--r-pill);
+      letter-spacing: 0.04em;
+      font-weight: 500;
+      transition: background .15s;
+    }
+    .ord-foot button:hover { background: color-mix(in oklch, var(--cafe) 85%, black); }
+    .ord-foot button.done {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .lane-empty {
+      flex: 1;
+      display: grid; place-items: center;
+      color: color-mix(in oklch, var(--cafe-ink) 50%, transparent);
+      font-size: 13px; font-style: italic;
+      padding: 30px 12px;
+      text-align: center;
+    }
+
+    /* totals row */
+    .totals-block {
+      margin-top: 32px;
+      padding: 18px 22px;
+      background: color-mix(in oklch, var(--cafe-ink) 6%, transparent);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 14%, transparent);
+      border-radius: var(--r-card);
+    }
+    .totals-block h3 {
+      color: var(--cafe-ink);
+      font-size: 16px;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .totals-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px 22px;
+    }
+    .totals-list .row {
+      display: flex; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 12px;
+      color: color-mix(in oklch, var(--cafe-ink) 78%, transparent);
+      padding: 4px 0;
+      border-bottom: 1px solid color-mix(in oklch, var(--cafe-ink) 10%, transparent);
+      font-variant-numeric: tabular-nums;
+    }
+    .totals-list .row .q { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="canvas-bg"></div>
+  <div class="admin-wrap">
+    <header class="admin-head">
+      <div>
+        <div class="kicker">Cafe Run · Behind the Counter</div>
+        <h1>Today's queue</h1>
+      </div>
+      <div>
+        <a class="back-link" href="index.html">← Staff view</a>
+        <div class="meta" id="admin-meta" style="margin-top: 8px;">—</div>
+      </div>
+    </header>
+
+    <section class="stats" id="stats">
+      <div class="stat"><div class="lbl">Orders today</div><div class="val" id="s-orders">0</div></div>
+      <div class="stat"><div class="lbl">Cups</div><div class="val" id="s-cups">0</div></div>
+      <div class="stat accent"><div class="lbl">In queue</div><div class="val" id="s-queue">0</div></div>
+      <div class="stat"><div class="lbl">Delivered</div><div class="val" id="s-done">0</div></div>
+    </section>
+
+    <section class="lanes">
+      <div class="lane queued">
+        <div class="lane-head"><span class="name">Queued</span><span class="count" id="c-queued">0</span></div>
+        <div id="lane-queued" style="display: flex; flex-direction: column; gap: 10px; flex: 1;"></div>
+      </div>
+      <div class="lane brewing">
+        <div class="lane-head"><span class="name">Brewing</span><span class="count" id="c-brewing">0</span></div>
+        <div id="lane-brewing" style="display: flex; flex-direction: column; gap: 10px; flex: 1;"></div>
+      </div>
+      <div class="lane delivered">
+        <div class="lane-head"><span class="name">Delivered</span><span class="count" id="c-delivered">0</span></div>
+        <div id="lane-delivered" style="display: flex; flex-direction: column; gap: 10px; flex: 1;"></div>
+      </div>
+    </section>
+
+    <section class="totals-block">
+      <h3>Roll-up · drinks ordered today</h3>
+      <div class="totals-list" id="totals-list">—</div>
+    </section>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="menu.js"></script>
+  <script src="db.js"></script>
+  <script>
+    (function () {
+      const $ = (s) => document.querySelector(s);
+      const money = (n) => `฿${Math.round(n)}`;
+      const time = (iso) => {
+        const d = new Date(iso); const hh = String(d.getHours()).padStart(2, "0"); const mm = String(d.getMinutes()).padStart(2, "0");
+        return `${hh}:${mm}`;
+      };
+      const OPT = window.MENU_OPTIONS;
+
+      function describeLine(it) {
+        const parts = [];
+        if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
+        if (it.size)  parts.push(`Size ${it.size}`);
+        if (it.sugar) parts.push(`Sugar ${it.sugar}%`);
+        if (it.ice && it.temp === "iced")   parts.push(`Ice ${OPT.ice.find(o=>o.id===it.ice)?.label || it.ice}`);
+        if (it.milk && it.milk !== "whole") parts.push(`${OPT.milk.find(o=>o.id===it.milk)?.label || it.milk} milk`);
+        if (it.item_note) parts.push(`"${it.item_note}"`);
+        return parts.join(" · ");
+      }
+
+      function orderTotal(o) { return o.items.reduce((n, it) => n + (it.price * it.qty), 0); }
+
+      function renderOrder(o) {
+        const total = orderTotal(o);
+        const card = document.createElement("div");
+        card.className = "ord-card";
+        const nextLabel = o.status === "queued" ? "Start brewing" : o.status === "brewing" ? "Mark delivered" : "Delivered";
+        const isDone = o.status === "delivered";
+        card.innerHTML = `
+          <div class="ord-head">
+            <span class="ord-code">#${o.code}</span>
+            <span class="ord-time">${time(o.created_at)}</span>
+          </div>
+          <div>
+            <div class="ord-who">${o.staff_name}</div>
+            ${o.room ? `<span class="ord-room">${o.room}</span>` : ""}
+          </div>
+          <div class="ord-items">
+            ${o.items.map(it => `
+              <div class="ord-line">
+                <span class="q">${it.qty}×</span>
+                <span>
+                  <strong>${it.name}</strong>
+                  <div class="o">${describeLine(it)}</div>
+                </span>
+              </div>`).join("")}
+          </div>
+          ${o.note ? `<div class="ord-note">${o.note}</div>` : ""}
+          <div class="ord-foot">
+            <span class="total">${money(total)}</span>
+            <span class="spacer"></span>
+            ${isDone
+              ? `<button class="done" disabled>Done</button>`
+              : `<button data-act="advance" data-id="${o.id}">${nextLabel}</button>`
+            }
+          </div>
+        `;
+        const btn = card.querySelector("[data-act=advance]");
+        if (btn) btn.addEventListener("click", async () => {
+          btn.disabled = true; btn.textContent = "…";
+          await DB.advanceOrderStatus(o.id);
+          await load();
+        });
+        return card;
+      }
+
+      async function load() {
+        const orders = await DB.listTodayOrders();
+        // counts
+        const cups = orders.reduce((n, o) => n + o.items.reduce((m, it) => m + it.qty, 0), 0);
+        const queued    = orders.filter(o => o.status === "queued");
+        const brewing   = orders.filter(o => o.status === "brewing");
+        const delivered = orders.filter(o => o.status === "delivered");
+
+        $("#s-orders").textContent = orders.length;
+        $("#s-cups").textContent   = cups;
+        $("#s-queue").textContent  = queued.length + brewing.length;
+        $("#s-done").textContent   = delivered.length;
+
+        $("#c-queued").textContent    = queued.length;
+        $("#c-brewing").textContent   = brewing.length;
+        $("#c-delivered").textContent = delivered.length;
+
+        const renderLane = (id, list) => {
+          const el = $(id); el.innerHTML = "";
+          if (!list.length) { el.innerHTML = `<div class="lane-empty">Nothing here.</div>`; return; }
+          list.forEach(o => el.appendChild(renderOrder(o)));
+        };
+        renderLane("#lane-queued",    queued);
+        renderLane("#lane-brewing",   brewing);
+        renderLane("#lane-delivered", delivered);
+
+        // totals roll-up
+        const totals = {};
+        orders.forEach(o => o.items.forEach(it => {
+          totals[it.name] = (totals[it.name] || 0) + it.qty;
+        }));
+        const tl = $("#totals-list");
+        const keys = Object.keys(totals).sort();
+        tl.innerHTML = keys.length
+          ? keys.map(k => `<div class="row"><span>${k}</span><span><span class="q">${totals[k]}</span></span></div>`).join("")
+          : `<div class="row" style="opacity:0.5;">No orders yet today.</div>`;
+
+        const d = new Date();
+        const hh = String(d.getHours()).padStart(2,"0"), mm = String(d.getMinutes()).padStart(2,"0");
+        $("#admin-meta").innerHTML = `last refresh ${hh}:${mm} · ${DB.mode === "supabase" ? "live · supabase" : "local · no backend"}`;
+      }
+
+      load();
+      setInterval(load, 15 * 1000);   // soft poll
+    })();
+  </script>
+</body>
+</html>
