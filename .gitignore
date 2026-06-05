@@ -1,19 +1,6 @@
-# macOS
 .DS_Store
-
-# Editor / OS
-.vscode/
-.idea/
-*.swp
-
-# Local
 node_modules/
-.env
-.env.local
-
-# Vercel
 .vercel
-
-# Open Design artifact metadata
-*.artifact.json
-telemetry.json
+mq0d*.jpg
+mq0d*.jpeg
+mq0e*.jpeg

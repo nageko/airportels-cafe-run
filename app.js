@@ -106,17 +106,137 @@
     });
   }
 
-  function drinkIcon(catId) {
-    // tiny single-stroke icons per category — no AI-slop emoji
-    const icons = {
-      espresso: `<path d="M3 8h15a4 4 0 0 1 0 8h-1"/><path d="M4 8v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V8"/><path d="M8 3v3M12 3v3M16 3v3"/>`,
-      milk:     `<path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7z"/><path d="M9 3h6v4H9z"/>`,
-      brewed:   `<path d="M4 4h13l-1 5"/><path d="M4 4l1 11a3 3 0 0 0 3 3h5a3 3 0 0 0 3-3l.5-3"/><path d="M16.5 9a3.5 3.5 0 0 1 0 7"/>`,
-      iced:     `<path d="M12 3v18M5.5 6.5l13 11M5.5 17.5l13-11"/><path d="M9 3h6M9 21h6"/>`,
-      tea:      `<path d="M4 8h12v6a5 5 0 0 1-10 0V8z"/><path d="M16 9h2a2 2 0 0 1 0 4h-2"/><path d="M9 5c0-1 .5-1.5 1.5-1.5S12 4 12 5"/>`,
-      other:    `<path d="M5 11a7 7 0 0 1 14 0v3a7 7 0 0 1-14 0z"/><path d="M9 14a3 3 0 0 0 6 0"/>`
-    };
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icons[catId] || icons.other}</svg>`;
+  // ─────── pure CSS/SVG drink renderer (no image files) ───────
+  function escapeXml(s) {
+    return String(s).replace(/[<>&"']/g, c => ({ "<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;","'":"&apos;" }[c]));
+  }
+  function renderCup(drink) {
+    const r = drink.recipe || {};
+    switch (r.type) {
+      case "hot":    return cupHot(r);
+      case "bottle": return cupBottle(r);
+      case "can":    return cupCan(r);
+      case "iced":
+      default:       return cupIced(r, drink.id);
+    }
+  }
+  function cupIced(r, id) {
+    const base = r.base || "#3a2418";
+    const top = r.top, topPct = (r.topPct ?? 0.28);
+    const topBandH = 54 * topPct;
+    const cid = `c-${id}`;
+    return `<svg viewBox="0 0 64 84" class="cup cup--iced" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <clipPath id="${cid}">
+          <path d="M14 22 L50 22 L46 74 Q46 76 44 76 L20 76 Q18 76 18 74 Z"/>
+        </clipPath>
+      </defs>
+      <rect x="40" y="6" width="3.5" height="22" rx="0.6" fill="#fef0e0"/>
+      <rect x="40.2" y="6" width="1.1" height="22" fill="rgba(255,255,255,0.45)"/>
+      <ellipse cx="32" cy="20" rx="20" ry="3.2" fill="#fafafa"/>
+      <rect x="12" y="20" width="40" height="5" fill="#fafafa"/>
+      <ellipse cx="32" cy="25" rx="20" ry="2.6" fill="#e0ddd5"/>
+      <rect x="14" y="22" width="36" height="54" fill="${base}" clip-path="url(#${cid})"/>
+      ${top ? `<rect x="14" y="22" width="36" height="${topBandH.toFixed(1)}" fill="${top}" clip-path="url(#${cid})"/>` : ""}
+      <g clip-path="url(#${cid})" fill="rgba(255,255,255,0.42)" stroke="rgba(255,255,255,0.22)" stroke-width="0.3">
+        <rect x="19" y="30" width="9" height="9" rx="1.2" transform="rotate(18 23.5 34.5)"/>
+        <rect x="33" y="36" width="8" height="8" rx="1.2" transform="rotate(-12 37 40)"/>
+        <rect x="23" y="48" width="9" height="9" rx="1.2" transform="rotate(8 27.5 52.5)"/>
+        <rect x="34" y="56" width="6" height="6" rx="1" transform="rotate(-22 37 59)"/>
+      </g>
+      ${r.garnish === "fruit" ? `
+        <g clip-path="url(#${cid})">
+          <circle cx="22" cy="32" r="2.4" fill="#ff6b3a"/>
+          <circle cx="40" cy="38" r="2" fill="#d22020"/>
+          <circle cx="28" cy="44" r="2.2" fill="#f0a830"/>
+          <path d="M36 50 Q38 48 40 50 Q38 54 36 50" fill="#3e8a3a"/>
+        </g>` : ""}
+      <path d="M14 22 L50 22 L46 74 Q46 76 44 76 L20 76 Q18 76 18 74 Z" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="0.7"/>
+      <text x="32" y="69" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="3.6" fill="rgba(255,255,255,0.55)">Gather</text>
+    </svg>`;
+  }
+  function cupHot(r) {
+    const base = r.base || "#3a2418";
+    const top = r.top, art = r.art;
+    return `<svg viewBox="0 0 64 84" class="cup cup--hot" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="rgba(255,255,255,0.55)" stroke-width="1.1" stroke-linecap="round" fill="none">
+        <path d="M22 4 Q24 10 22 16"/>
+        <path d="M32 1 Q34 9 32 16"/>
+        <path d="M42 4 Q40 10 42 16"/>
+      </g>
+      <path d="M52 36 Q60 36 60 46 Q60 56 52 56" fill="none" stroke="#f5f1ea" stroke-width="3" stroke-linecap="round"/>
+      <path d="M52 39.5 Q57 39.5 57 46 Q57 52.5 52 52.5" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="0.8"/>
+      <path d="M10 26 L54 26 L52 64 Q52 68 48 68 L16 68 Q12 68 12 64 Z" fill="#fbf8f1"/>
+      <path d="M10 26 L54 26 L52 64 Q52 68 48 68 L16 68 Q12 68 12 64 Z" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="0.6"/>
+      <ellipse cx="32" cy="28" rx="20.5" ry="3.2" fill="${base}"/>
+      ${top ? `<ellipse cx="32" cy="28" rx="20.5" ry="3.2" fill="${top}"/>` : ""}
+      ${top && art === "heart" ? `
+        <path d="M30 25.6 Q28.2 23.8 30 23 Q31.6 23.6 32 24.6 Q32.4 23.6 34 23 Q35.8 23.8 34 25.6 Q33 27.4 32 28.6 Q31 27.4 30 25.6 Z" fill="${base}" opacity="0.7"/>
+      ` : ""}
+      ${top && art === "leaf" ? `
+        <g fill="${base}" opacity="0.5">
+          <ellipse cx="32" cy="27.6" rx="10" ry="1.4"/>
+          <ellipse cx="32" cy="27.6" rx="7" ry="1.0"/>
+          <ellipse cx="32" cy="27.6" rx="4" ry="0.7"/>
+          <line x1="22" y1="27.6" x2="42" y2="27.6" stroke="${base}" stroke-width="0.4"/>
+        </g>` : ""}
+      ${top && art === "lattice" ? `
+        <g stroke="${base}" stroke-width="0.5" opacity="0.55" fill="none">
+          <ellipse cx="32" cy="27.5" rx="18" ry="2.5"/>
+          <ellipse cx="32" cy="27.5" rx="14" ry="2"/>
+          <ellipse cx="32" cy="27.5" rx="10" ry="1.5"/>
+          <ellipse cx="32" cy="27.5" rx="6" ry="1"/>
+        </g>` : ""}
+      <text x="32" y="60" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="4.5" fill="rgba(0,0,0,0.18)">Gather</text>
+      <ellipse cx="32" cy="73" rx="27" ry="3.6" fill="#fbf8f1" stroke="rgba(0,0,0,0.12)" stroke-width="0.6"/>
+      <ellipse cx="32" cy="72" rx="22" ry="2.6" fill="#f0ebe1"/>
+    </svg>`;
+  }
+  function cupBottle(r) {
+    const base = r.base || "#5a4030";
+    const labelBg = r.labelBg || "#fdf6e3";
+    const ink = r.inkOnLabel || "#3a2810";
+    const lines = (r.label || "").split("\n").slice(0, 2);
+    const fontSize = lines.length === 1 ? 4.6 : 4.2;
+    return `<svg viewBox="0 0 64 84" class="cup cup--bottle" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="26" y="6" width="12" height="6" rx="1" fill="#3a3530"/>
+      <rect x="26" y="6" width="12" height="1.8" fill="rgba(255,255,255,0.18)"/>
+      <rect x="27" y="12" width="10" height="10" fill="${base}"/>
+      <ellipse cx="32" cy="22" rx="5" ry="1.5" fill="rgba(0,0,0,0.22)"/>
+      <path d="M27 22 Q22 26 18 32 L18 72 Q18 78 24 78 L40 78 Q46 78 46 72 L46 32 Q42 26 37 22 Z" fill="${base}"/>
+      <path d="M22 30 L22 70" stroke="rgba(255,255,255,0.22)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+      <path d="M27 22 Q22 26 18 32 L18 72 Q18 78 24 78 L40 78 Q46 78 46 72 L46 32 Q42 26 37 22" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="0.5"/>
+      <rect x="19" y="40" width="26" height="28" rx="1" fill="${labelBg}"/>
+      <rect x="19" y="40" width="26" height="2.5" fill="rgba(0,0,0,0.08)"/>
+      <rect x="19" y="65.5" width="26" height="2.5" fill="rgba(0,0,0,0.08)"/>
+      <text x="32" y="47" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="3.4" fill="${ink}" opacity="0.9">* Gather *</text>
+      <text x="32" y="50.5" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="5" fill="${ink}">Craft Soda</text>
+      <g font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-weight="800" letter-spacing="0.2" text-anchor="middle">
+        <text x="32" y="${lines.length === 1 ? 60 : 57}" font-size="${fontSize}" fill="${ink}">${escapeXml(lines[0])}</text>
+        ${lines[1] ? `<text x="32" y="62" font-size="${fontSize}" fill="${ink}">${escapeXml(lines[1])}</text>` : ""}
+      </g>
+    </svg>`;
+  }
+  function cupCan(r) {
+    const base = r.base || "#c8443a";
+    const labelBg = r.labelBg || "#fff";
+    const ink = r.inkOnLabel || "#5a1810";
+    const lines = (r.label || "").split("\n").slice(0, 2);
+    return `<svg viewBox="0 0 64 84" class="cup cup--can" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <ellipse cx="32" cy="14" rx="16" ry="2.5" fill="#d8d4cc"/>
+      <ellipse cx="32" cy="13.5" rx="14" ry="1.7" fill="#aeaaa2"/>
+      <rect x="16" y="14" width="32" height="60" fill="${base}"/>
+      <rect x="16" y="14" width="2.8" height="60" fill="rgba(255,255,255,0.20)"/>
+      <rect x="45.2" y="14" width="2.8" height="60" fill="rgba(0,0,0,0.16)"/>
+      <ellipse cx="32" cy="74" rx="16" ry="2.5" fill="rgba(0,0,0,0.28)"/>
+      <ellipse cx="32" cy="73.2" rx="14" ry="1.8" fill="${base}"/>
+      <rect x="20" y="34" width="24" height="22" rx="1" fill="${labelBg}"/>
+      <g font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-weight="800" letter-spacing="0.2" text-anchor="middle">
+        <text x="32" y="${lines.length === 1 ? 49 : 44.5}" font-size="${lines.length === 1 ? 5.5 : 4.6}" fill="${ink}">${escapeXml(lines[0])}</text>
+        ${lines[1] ? `<text x="32" y="51" font-size="4.6" fill="${ink}">${escapeXml(lines[1])}</text>` : ""}
+      </g>
+      <rect x="16" y="14" width="32" height="60" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="0.5"/>
+    </svg>`;
   }
 
   function renderDrinks() {
@@ -126,10 +246,13 @@
     drinks.forEach(d => {
       const card = document.createElement("button");
       card.className = "drink-card";
+      const bestTag = d.bestseller ? `<span class="best-flag">Best · #${d.bestseller}</span>` : "";
+      const thaiLine = d.thai ? `<div class="drink-thai">${d.thai}</div>` : "";
       card.innerHTML = `
-        <div class="drink-thumb">${drinkIcon(d.cat)}</div>
+        <div class="drink-thumb">${renderCup(d)}</div>
         <div class="drink-info">
-          <div class="drink-name">${d.name}</div>
+          <div class="drink-name">${d.name}${bestTag}</div>
+          ${thaiLine}
           <div class="drink-desc">${d.desc}</div>
           <div class="drink-meta">
             ${d.temps.map(t => `<span class="tag">${t}</span>`).join("")}
@@ -155,10 +278,16 @@
       item_note: ""
     };
 
-    $("#cust-name").textContent = drink.name;
+    $("#cust-name").innerHTML = drink.name + (drink.thai ? ` <span class="cust-thai">${drink.thai}</span>` : "");
     $("#cust-desc").textContent = drink.desc;
 
     const body = $("#cust-body"); body.innerHTML = "";
+
+    // Drink visual at the top of the sheet
+    const visual = document.createElement("div");
+    visual.className = "cust-visual";
+    visual.innerHTML = renderCup(drink);
+    body.appendChild(visual);
 
     // temp
     if (drink.temps.length > 1) body.appendChild(group("Temperature", drink.temps.map(t => ({ id: t, label: t === "hot" ? "Hot" : "Iced" })), "temp"));
