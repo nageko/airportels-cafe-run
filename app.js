@@ -4,12 +4,13 @@
 (function () {
   const $  = (s, p = document) => p.querySelector(s);
   const $$ = (s, p = document) => Array.from(p.querySelectorAll(s));
+  const t  = (k) => window.I18N.t(k);
 
   // ───── state ─────
   const state = {
     staff: null,
     activeCat: window.MENU_CATEGORIES[0].id,
-    cart: [],         // { uid, drink_id, name, qty, temp, sugar, item_note }
+    cart: [],         // { uid, drink_id, name, qty, temp, sugar, roast, item_note }
     editingDrink: null,
     customize: null   // working draft while customize sheet is open
   };
@@ -20,6 +21,15 @@
     const el = $("#toast"); el.textContent = msg; el.classList.add("show");
     clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 1800);
   };
+
+  // Apply i18n to every element carrying data-i18n / data-i18n-html / data-i18n-placeholder.
+  function applyI18nDom() {
+    $$("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+    $$("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+    $$("[data-i18n-placeholder]").forEach(el => { el.placeholder = t(el.getAttribute("data-i18n-placeholder")); });
+    // Highlight the active pill in any lang toggle on screen
+    $$(".lang-pill").forEach(p => p.classList.toggle("active", p.dataset.lang === window.I18N.current));
+  }
 
   function show(screenId) {
     $$(".screen").forEach(s => s.classList.toggle("active", s.id === screenId));
@@ -38,24 +48,30 @@
   $("#veil").addEventListener("click", closeSheets);
 
   // ───── login ─────
-  function initLogin() {
+  function renderRoomOptions() {
     const sel = $("#room");
-    sel.innerHTML = `<option value="" disabled selected>Pick a room…</option>` +
-      (window.MEETING_ROOMS || []).map(r => `<option value="${r}">${r}</option>`).join("");
+    const current = sel.value;
+    sel.innerHTML = `<option value="" disabled ${current ? "" : "selected"}>${t("login.room.placeholder")}</option>` +
+      (window.MEETING_ROOMS || []).map(r => `<option value="${r}"${r === current ? " selected" : ""}>${r}</option>`).join("");
+  }
+
+  function initLogin() {
+    renderRoomOptions();
+    const sel = $("#room");
 
     $("#login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = $("#name").value.trim();
       const room = sel.value;
-      if (!name) { toast("Type your name first"); $("#name").focus(); return; }
-      if (!room) { toast("Pick a meeting room");  sel.focus();        return; }
+      if (!name) { toast(t("toast.typename")); $("#name").focus(); return; }
+      if (!room) { toast(t("toast.pickroom")); sel.focus();        return; }
       $("#login-submit").setAttribute("disabled", "true");
       try {
         state.staff = await DB.signInStaff({ name, room });
         enterMenu();
       } catch (err) {
         console.error("Login failed:", err);
-        toast("Something went wrong — try again");
+        toast(t("toast.error"));
       } finally {
         $("#login-submit").removeAttribute("disabled");
       }
@@ -70,10 +86,37 @@
     }
   }
 
+  // Wire up language toggles (login + menu header). Both flip the same global lang.
+  function initLangToggles() {
+    const handler = () => window.I18N.toggle();
+    const a = $("#lang-toggle");      if (a) a.addEventListener("click", handler);
+    const b = $("#lang-toggle-menu"); if (b) b.addEventListener("click", handler);
+  }
+
+  document.addEventListener("lang:change", () => {
+    applyI18nDom();
+    renderRoomOptions();
+    // Re-render dynamic surfaces that are visible right now.
+    if ($("#screen-menu").classList.contains("active")) {
+      $("#hello-name").textContent = state.staff ? `${t("menu.greet")} ${state.staff.name}.` : "Hi.";
+      renderTabs();
+      renderDrinks();
+    }
+    // Re-render the customize sheet if it's open
+    if ($("#sheet-customize").classList.contains("open") && state.editingDrink) {
+      openCustomize(state.editingDrink, state.customize);
+    }
+    // Re-render the cart if it's open
+    if ($("#sheet-cart").classList.contains("open")) {
+      openCart();
+    }
+    tickClock();
+  });
+
   function enterMenu() {
     if (!state.staff) state.staff = DB.currentStaff();
     if (!state.staff) { show("screen-login"); return; }
-    $("#hello-name").textContent = `Hi, ${state.staff.name}.`;
+    $("#hello-name").textContent = `${t("menu.greet")} ${state.staff.name}.`;
     $("#hello-room").textContent = state.staff.room ? `· ${state.staff.room}` : "";
     tickClock();
     renderTabs();
@@ -96,7 +139,7 @@
     window.MENU_CATEGORIES.forEach(cat => {
       const btn = document.createElement("button");
       btn.className = "cat-tab" + (cat.id === state.activeCat ? " active" : "");
-      btn.textContent = cat.label;
+      btn.textContent = t(`cat.${cat.id}`);
       btn.addEventListener("click", () => {
         state.activeCat = cat.id;
         renderTabs(); renderDrinks();
@@ -238,6 +281,13 @@
     </svg>`;
   }
 
+  function drinkPrimary(d)   { return window.I18N.current === "th" && d.thai ? d.thai : d.name; }
+  function drinkSecondary(d) { return window.I18N.current === "th" ? d.name : (d.thai || ""); }
+  function drinkAliasLine(d) {
+    if (!d.aliases || !d.aliases.length) return "";
+    return ` · ${d.aliases.join(" · ")}`;
+  }
+
   function renderDrinks() {
     const list = $("#drink-list"); list.innerHTML = "";
     const drinks = window.MENU.filter(d => d.cat === state.activeCat);
@@ -246,15 +296,19 @@
       const card = document.createElement("button");
       card.className = "drink-card";
       const bestTag = d.bestseller ? `<span class="best-flag">Best · #${d.bestseller}</span>` : "";
-      const thaiLine = d.thai ? `<div class="drink-thai">${d.thai}</div>` : "";
+      const secondary = drinkSecondary(d);
+      const aliases = drinkAliasLine(d);
+      const secondaryLine = (secondary || aliases)
+        ? `<div class="drink-thai">${secondary}${aliases}</div>` : "";
+      const tempLabel = (tm) => t(`opt.temp.${tm}`);
       card.innerHTML = `
         <div class="drink-thumb">${renderCup(d)}</div>
         <div class="drink-info">
-          <div class="drink-name">${d.name}${bestTag}</div>
-          ${thaiLine}
+          <div class="drink-name">${drinkPrimary(d)}${bestTag}</div>
+          ${secondaryLine}
           <div class="drink-desc">${d.desc}</div>
           <div class="drink-meta">
-            ${d.temps.map(t => `<span class="tag">${t}</span>`).join("")}
+            ${d.temps.map(tm => `<span class="tag">${tempLabel(tm)}</span>`).join("")}
           </div>
         </div>
       `;
@@ -270,11 +324,14 @@
       qty: 1,
       temp: drink.temps[0],
       sugar: drink.opts.includes("sugar") ? "50" : null,
+      roast: drink.opts.includes("roast") ? "medium" : null,
       customName: "",
       item_note: ""
     };
 
-    $("#cust-name").innerHTML = drink.name + (drink.thai ? ` <span class="cust-thai">${drink.thai}</span>` : "");
+    const primary = drinkPrimary(drink);
+    const secondary = drinkSecondary(drink);
+    $("#cust-name").innerHTML = primary + (secondary ? ` <span class="cust-thai">${secondary}</span>` : "");
     $("#cust-desc").textContent = drink.desc;
 
     const body = $("#cust-body"); body.innerHTML = "";
@@ -290,8 +347,8 @@
       const nameField = document.createElement("div");
       nameField.className = "field";
       nameField.style.marginBottom = "18px";
-      nameField.innerHTML = `<label for="custom-name">Drink name</label>
-        <input id="custom-name" type="text" maxlength="60" placeholder="e.g. Iced Hojicha Latte, Espresso Tonic" autocomplete="off" />`;
+      nameField.innerHTML = `<label for="custom-name">${t("sheet.cust.customname.label")}</label>
+        <input id="custom-name" type="text" maxlength="60" placeholder="${t("sheet.cust.customname.placeholder")}" autocomplete="off" value="${(state.customize.customName || "").replace(/"/g, "&quot;")}" />`;
       body.appendChild(nameField);
       nameField.querySelector("#custom-name").addEventListener("input", (e) => {
         state.customize.customName = e.target.value;
@@ -299,18 +356,21 @@
     }
 
     // temp
-    if (drink.temps.length > 1) body.appendChild(group("Temperature", drink.temps.map(t => ({ id: t, label: t === "hot" ? "Hot" : "Iced" })), "temp"));
+    if (drink.temps.length > 1) {
+      body.appendChild(group(t("opt.temp"), drink.temps.map(tm => ({ id: tm, label: t(`opt.temp.${tm}`) })), "temp"));
+    }
 
-    if (drink.opts.includes("sugar")) body.appendChild(group("Sugar level", MENU_OPTIONS.sugar, "sugar"));
+    if (drink.opts.includes("sugar")) body.appendChild(group(t("opt.sugar"), MENU_OPTIONS.sugar, "sugar"));
+    if (drink.opts.includes("roast")) body.appendChild(group(t("opt.roast"), MENU_OPTIONS.roast, "roast"));
 
     // qty
     const qty = document.createElement("div");
     qty.className = "opt-group";
     qty.innerHTML = `
-      <div class="opt-label">Quantity</div>
+      <div class="opt-label">${t("sheet.cust.qty")}</div>
       <div class="qty-row">
         <button class="qty-btn" id="q-minus">−</button>
-        <span class="qty-val" id="q-val">1</span>
+        <span class="qty-val" id="q-val">${state.customize.qty}</span>
         <button class="qty-btn" id="q-plus">+</button>
       </div>`;
     body.appendChild(qty);
@@ -318,7 +378,7 @@
     // note
     const note = document.createElement("div");
     note.className = "field";
-    note.innerHTML = `<label for="item-note">Note (optional)</label><textarea id="item-note" class="note-input" maxlength="80" placeholder="e.g. extra hot, no foam"></textarea>`;
+    note.innerHTML = `<label for="item-note">${t("sheet.cust.note.label")}</label><textarea id="item-note" class="note-input" maxlength="80" placeholder="${t("sheet.cust.note.placeholder")}">${(state.customize.item_note || "").replace(/"/g, "&quot;")}</textarea>`;
     body.appendChild(note);
 
     body.querySelector("#q-minus").addEventListener("click", () => { state.customize.qty = Math.max(1, state.customize.qty - 1); $("#q-val").textContent = state.customize.qty; });
@@ -327,6 +387,9 @@
 
     openSheet("#sheet-customize");
   }
+
+  // Resolves an option's display label, using its i18n key if present.
+  function optLabel(o) { return o.i18n ? t(o.i18n) : o.label; }
 
   function group(label, options, key) {
     const g = document.createElement("div");
@@ -337,7 +400,7 @@
       const chip = document.createElement("button");
       chip.className = "chip";
       chip.dataset.key = key; chip.dataset.value = o.id;
-      chip.innerHTML = `${o.label}`;
+      chip.innerHTML = `${optLabel(o)}`;
       chip.setAttribute("aria-selected", String(state.customize[key] === o.id));
       chip.addEventListener("click", () => {
         state.customize[key] = o.id;
@@ -354,7 +417,7 @@
     if (d.custom) {
       const typed = (c.customName || "").trim();
       if (!typed) {
-        toast("Type the drink name first");
+        toast(t("toast.customname"));
         const el = $("#custom-name"); if (el) el.focus();
         return;
       }
@@ -367,11 +430,12 @@
       qty: c.qty,
       temp: c.temp,
       sugar: c.sugar,
+      roast: c.roast,
       item_note: c.item_note
     });
     closeSheets();
     renderCartBar();
-    toast(`Added · ${lineName}`);
+    toast(`${t("toast.added")}${lineName}`);
   });
 
   // ───── cart ─────
@@ -385,9 +449,14 @@
 
   function describeLine(it) {
     const parts = [];
-    if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
-    if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
-      parts.push(`Sugar ${it.sugar}%`);
+    if (it.temp)  parts.push(t(`opt.temp.${it.temp}`));
+    if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "") {
+      const lbl = (MENU_OPTIONS.sugar.find(o => o.id === String(it.sugar)));
+      parts.push(`${t("opt.sugar")} ${lbl ? optLabel(lbl) : it.sugar + "%"}`);
+    }
+    if (it.roast) {
+      parts.push(`${t("opt.roast")}: ${t(`opt.roast.${it.roast}`)}`);
+    }
     if (it.item_note) parts.push(`“${it.item_note}”`);
     return parts.join(" · ");
   }
@@ -396,7 +465,7 @@
     const list = $("#cart-list");
     list.innerHTML = "";
     if (!state.cart.length) {
-      list.innerHTML = `<div class="empty">Nothing in your order yet.</div>`;
+      list.innerHTML = `<div class="empty">${t("sheet.cart.empty")}</div>`;
     } else {
       state.cart.forEach(it => {
         const row = document.createElement("div");
@@ -410,7 +479,7 @@
             <button class="qty-btn" data-act="dec" data-uid="${it.uid}">−</button>
             <span class="qty-val">${it.qty}</span>
             <button class="qty-btn" data-act="inc" data-uid="${it.uid}">+</button>
-            <button class="remove" data-act="rm"  data-uid="${it.uid}">Remove</button>
+            <button class="remove" data-act="rm"  data-uid="${it.uid}">${t("sheet.cart.remove")}</button>
           </div>`;
         list.appendChild(row);
       });
@@ -442,6 +511,7 @@
     const items = state.cart.map(it => ({
       drink_id: it.drink_id, name: it.name, qty: it.qty,
       sugar: it.sugar,
+      roast: it.roast,
       temp: it.temp, item_note: it.item_note
     }));
     const note = $("#order-note").value.trim();
@@ -460,10 +530,15 @@
     summary.innerHTML = order.items.map(it => `
       <div class="line"><span><span class="qty">${it.qty}×</span>${it.name}</span></div>
     `).join("");
+    const isTh = window.I18N.current === "th";
     $("#confirm-body").textContent =
       order.room
-        ? `Heading to ${order.room} for ${order.staff_name}. Listen for the code at the door.`
-        : `Order received from ${order.staff_name}. Listen for the code at the door.`;
+        ? (isTh
+            ? `จัดส่งไปยัง ${order.room} ให้ ${order.staff_name} · รอฟังโค้ดที่หน้าห้อง`
+            : `Heading to ${order.room} for ${order.staff_name}. Listen for the code at the door.`)
+        : (isTh
+            ? `ได้รับออเดอร์จาก ${order.staff_name} · รอฟังโค้ดที่หน้าห้อง`
+            : `Order received from ${order.staff_name}. Listen for the code at the door.`);
     show("screen-confirm");
   }
   $("#back-to-menu").addEventListener("click", enterMenu);
@@ -474,7 +549,8 @@
       const d = new Date();
       const hh = String(d.getHours()).padStart(2, "0");
       const mm = String(d.getMinutes()).padStart(2, "0");
-      $("#menu-clock").textContent = `${hh}:${mm}  ·  ${DB.mode === "supabase" ? "live" : "offline"}`;
+      const statusKey = DB.mode === "supabase" ? "meta.live" : "meta.offline";
+      $("#menu-clock").textContent = `${hh}:${mm}  ·  ${t(statusKey)}`;
     };
     update();
     clearInterval(tickClock._t);
@@ -482,6 +558,8 @@
   }
 
   // ───── init ─────
+  applyI18nDom();
   initLogin();
+  initLangToggles();
   if (DB.currentStaff()) enterMenu();
 })();

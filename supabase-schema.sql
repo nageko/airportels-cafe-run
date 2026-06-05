@@ -29,11 +29,14 @@ create table if not exists public.order_items (
   sugar       text,
   ice         text,
   milk        text,
+  roast       text,
   temp        text,
   qty         int  not null default 1,
   price       numeric(10,2) not null default 0,
   item_note   text
 );
+-- Migration safety: bring legacy schemas in line.
+alter table public.order_items add column if not exists roast text;
 create index if not exists order_items_order_id_idx on public.order_items (order_id);
 
 -- Internal-use prototype: open RLS to the anon key.

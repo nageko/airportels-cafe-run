@@ -809,11 +809,16 @@
       };
       const OPT = window.MENU_OPTIONS;
 
+      function roastLabel(r) {
+        if (!r) return "";
+        return ({ light: "Light", medium: "Medium", dark: "Dark" })[r] || r;
+      }
       function describeLine(it) {
         const parts = [];
         if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
         if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
           parts.push(`Sugar ${it.sugar}%`);
+        if (it.roast) parts.push(`Roast: ${roastLabel(it.roast)}`);
         if (it.item_note) parts.push(`"${it.item_note}"`);
         return parts.join(" · ");
       }
@@ -936,7 +941,9 @@
       function thaiName(it) {
         if (!it.drink_id) return "";
         const d = drinkLookup[it.drink_id];
-        return d && d.thai ? d.thai : "";
+        if (!d || !d.thai) return "";
+        // If the menu defines aliases (e.g. ชาพีท for ชานมพีช), surface them so the cafe sees both.
+        return d.thai + (d.aliases && d.aliases.length ? ` · ${d.aliases.join(" · ")}` : "");
       }
 
       function describeOpts(it) {
@@ -947,6 +954,7 @@
           const lbl = (OPT.sugar.find(o => o.id === String(it.sugar))?.label) || `Sugar ${it.sugar}%`;
           opts.push({ text: `Sugar: ${lbl}` });
         }
+        if (it.roast) opts.push({ text: `Roast: ${roastLabel(it.roast)}` });
         return opts;
       }
 

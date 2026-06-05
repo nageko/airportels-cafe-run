@@ -25,43 +25,43 @@ window.MENU = [
   // ───────── ESPRESSO ─────────
   { id: "iced-americano", cat: "espresso", name: "Iced Americano", thai: "อเมริกาโน่",
     desc: "Bright espresso lengthened with cold water. The bestseller.",
-    price: 89, temps: ["iced"], opts: ["sugar"], bestseller: 1,
+    price: 89, temps: ["iced"], opts: ["sugar", "roast"], bestseller: 1,
     recipe: { type: "iced", base: "#2a1810", top: null, label: "AMERICANO" } },
   { id: "iced-cappuccino", cat: "espresso", name: "Iced Cappuccino", thai: "คาปูชิโน่",
     desc: "Cold milk + dense espresso foam.",
-    price: 99, temps: ["iced"], opts: ["sugar"],
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#7a5536", top: "#e8d4b8", topPct: 0.22, label: "CAPPUCCINO" } },
   { id: "black-orange", cat: "espresso", name: "Black Orange", thai: "กาแฟส้ม",
     desc: "Americano poured over fresh orange. Tangy, sweet, bitter all at once.",
-    price: 109, temps: ["iced"], opts: ["sugar"], bestseller: 4,
+    price: 109, temps: ["iced"], opts: ["sugar", "roast"], bestseller: 4,
     recipe: { type: "iced", base: "#e89216", top: "#2a1810", topPct: 0.42, label: "BLACK\nORANGE" } },
   { id: "iced-cafe-latte", cat: "espresso", name: "Ice Cafe Latte", thai: "ลาเต้",
     desc: "Cold milk, double espresso, smooth & balanced.",
-    price: 99, temps: ["iced"], opts: ["sugar"], bestseller: 2,
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"], bestseller: 2,
     recipe: { type: "iced", base: "#7e5234", top: "#e8d4b8", topPct: 0.24, label: "CAFE LATTE" } },
   { id: "es-yen", cat: "espresso", name: "Es-Yen", thai: "กาแฟเย็น",
     desc: "Thai-style sweet condensed-milk coffee. Classic.",
-    price: 99, temps: ["iced"], opts: ["sugar"], bestseller: 5,
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"], bestseller: 5,
     recipe: { type: "iced", base: "#a07a52", top: "#d8b88a", topPct: 0.18, label: "ES-YEN" } },
   { id: "iced-mocha", cat: "espresso", name: "Iced Mocha", thai: "ม็อคค่า",
     desc: "Espresso + real chocolate + cold milk. Dessert in a cup.",
-    price: 99, temps: ["iced"], opts: ["sugar"],
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#3a2418", top: "#d8c0a4", topPct: 0.28, label: "MOCHA" } },
   { id: "iced-breve", cat: "espresso", name: "Iced Breve", thai: "เบรฟ (วิปครีม)",
     desc: "Espresso shaken with cream. Dense, silky, rich.",
-    price: 99, temps: ["iced"], opts: ["sugar"],
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#a47854", top: "#f1e2c9", topPct: 0.30, label: "BREVE" } },
   { id: "iced-caramel-macchiato", cat: "espresso", name: "Iced Caramel Macchiato", thai: "คาราเมล มัคคิอาโต้",
     desc: "Cold milk, caramel ribbon, espresso on top.",
-    price: 99, temps: ["iced"], opts: ["sugar"],
+    price: 99, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#e0c08c", top: "#5a3818", topPct: 0.30, label: "CARAMEL\nMACCHIATO" } },
   { id: "iced-americano-coconut", cat: "espresso", name: "Iced Americano Coconut", thai: "กาแฟมะพร้าว",
     desc: "Americano over fresh coconut water. Tropical and dark.",
-    price: 109, temps: ["iced"], opts: ["sugar"], bestseller: 6,
+    price: 109, temps: ["iced"], opts: ["sugar", "roast"], bestseller: 6,
     recipe: { type: "iced", base: "#f0ebe2", top: "#2a1810", topPct: 0.42, label: "BLACK\nCOCONUT" } },
   { id: "toddy-palm-americano", cat: "espresso", name: "Toddy Palm Americano", thai: "อเมริกาโน่ลูกตาล",
     desc: "Americano sweetened with palm-sugar syrup.",
-    price: 110, temps: ["iced"], opts: ["sugar"],
+    price: 110, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#3a2418", top: "#e6c896", topPct: 0.22, label: "TODDY PALM" } },
 
   // ───────── MATCHA ─────────
@@ -99,6 +99,11 @@ window.MENU = [
     recipe: { type: "iced", base: "#3e6224", top: null, label: "PURE MATCHA" } },
 
   // ───────── TEA & MILK ─────────
+  // Tropical SuperFruit Tea moved here from "summer" — was the team's #1 order last week.
+  { id: "tropical-superfruit-tea", cat: "tea", name: "Tropical SuperFruit Tea", thai: "ชาผลไม้", aliases: ["ชาไม้ผล"],
+    desc: "Fruit tea with seasonal fresh fruit. Gather Summer special.",
+    price: 165, temps: ["iced"], opts: ["sugar"],
+    recipe: { type: "iced", base: "#e89b4c", top: null, label: "TROPICAL\nSUPERFRUIT", garnish: "fruit" } },
   { id: "iced-thai-tea", cat: "tea", name: "Iced Thai Tea", thai: "ชาไทยเย็น",
     desc: "Classic orange Thai tea + condensed milk.",
     price: 89, temps: ["iced"], opts: ["sugar"],
@@ -107,7 +112,7 @@ window.MENU = [
     desc: "Jasmine green tea + milk. Floral, light.",
     price: 89, temps: ["iced"], opts: ["sugar"],
     recipe: { type: "iced", base: "#7a9846", top: "#e8d4b8", topPct: 0.18, label: "GREEN TEA" } },
-  { id: "iced-peach-tea", cat: "tea", name: "Iced Peach Tea", thai: "ชานมพีช",
+  { id: "iced-peach-tea", cat: "tea", name: "Iced Peach Tea", thai: "ชานมพีช", aliases: ["ชาพีท"],
     desc: "Peach tea + milk. Sweet, soft.",
     price: 89, temps: ["iced"], opts: ["sugar"],
     recipe: { type: "iced", base: "#dc9c70", top: null, label: "PEACH TEA" } },
@@ -125,7 +130,7 @@ window.MENU = [
     recipe: { type: "iced", base: "#f6f2e8", top: null, label: "FRESH MILK" } },
 
   // ───────── COCOA ─────────
-  { id: "iced-cocoa-latte", cat: "cocoa", name: "Iced Cocoa Latte", thai: "โกโก้เย็น",
+  { id: "iced-cocoa-latte", cat: "cocoa", name: "Iced Cocoa Latte", thai: "โกโก้เย็น", aliases: ["ช็อกโกแลต"],
     desc: "Cocoa + cold milk. Comfort drink.",
     price: 89, temps: ["iced"], opts: ["sugar"],
     recipe: { type: "iced", base: "#5a3220", top: "#e8d4b8", topPct: 0.22, label: "COCOA LATTE" } },
@@ -209,21 +214,17 @@ window.MENU = [
   // ───────── SUMMER SPECIALS ─────────
   { id: "americano-cloudy-yogurt", cat: "summer", name: "Americano Cloudy Yogurt", thai: "อเมริกาโน่ คลาวด์ดี้ โยเกิร์ต",
     desc: "Honduras coffee + cloudy yogurt finish.",
-    price: 165, temps: ["iced"], opts: ["sugar"],
+    price: 165, temps: ["iced"], opts: ["sugar", "roast"],
     recipe: { type: "iced", base: "#2a1810", top: "#f5ede0", topPct: 0.40, label: "CLOUDY\nYOGURT" } },
-  { id: "tropical-superfruit-tea", cat: "summer", name: "Tropical SuperFruit Tea", thai: "ชาผลไม้",
-    desc: "Fruit tea with seasonal fresh fruit. Gather Summer special.",
-    price: 165, temps: ["iced"], opts: ["sugar"],
-    recipe: { type: "iced", base: "#e89b4c", top: null, label: "TROPICAL\nSUPERFRUIT", garnish: "fruit" } },
 
   // ───────── HOT MENU ─────────
   { id: "hot-americano", cat: "hot", name: "Hot Americano", thai: "อเมริกาโน่ร้อน",
     desc: "Bright espresso, hot water. Pure.",
-    price: 75, temps: ["hot"], opts: ["sugar"],
+    price: 75, temps: ["hot"], opts: ["sugar", "roast"],
     recipe: { type: "hot", base: "#2a1810", top: null, label: "AMERICANO" } },
   { id: "hot-latte", cat: "hot", name: "Hot Latte", thai: "ลาเต้ร้อน",
     desc: "Steamed milk + espresso + heart latte art.",
-    price: 89, temps: ["hot"], opts: ["sugar"],
+    price: 89, temps: ["hot"], opts: ["sugar", "roast"],
     recipe: { type: "hot", base: "#7e5234", top: "#f1e2c9", topPct: 0.62, art: "heart", label: "LATTE" } },
   { id: "hot-cocoa", cat: "hot", name: "Hot Cocoa", thai: "โกโก้ร้อน",
     desc: "Hot real cocoa + milk + cocoa dusting.",
@@ -231,11 +232,11 @@ window.MENU = [
     recipe: { type: "hot", base: "#5a3220", top: "#e8d4b8", topPct: 0.62, art: "leaf", label: "COCOA" } },
   { id: "hot-mocha", cat: "hot", name: "Hot Mocha", thai: "มอคค่าร้อน",
     desc: "Espresso + chocolate + steamed milk.",
-    price: 89, temps: ["hot"], opts: ["sugar"],
+    price: 89, temps: ["hot"], opts: ["sugar", "roast"],
     recipe: { type: "hot", base: "#3a2418", top: "#d8c0a4", topPct: 0.58, art: "leaf", label: "MOCHA" } },
   { id: "hot-caramel-macchiato", cat: "hot", name: "Hot Caramel Macchiato", thai: "คาราเมลแมคคิอาโต้ร้อน",
     desc: "Caramel + vanilla + layered espresso.",
-    price: 89, temps: ["hot"], opts: ["sugar"],
+    price: 89, temps: ["hot"], opts: ["sugar", "roast"],
     recipe: { type: "hot", base: "#7c5232", top: "#e8d4b4", topPct: 0.60, art: "lattice", label: "MACCHIATO" } },
   { id: "hot-thai-tea", cat: "hot", name: "Hot Thai Tea", thai: "ชาไทยร้อน",
     desc: "Hot Thai tea + condensed milk.",
@@ -256,9 +257,10 @@ window.MENU = [
 window.MENU_CATEGORIES.push({ id: "other", label: "Other" });
 
 // Option vocabularies — used by the customize sheet.
+// Labels are i18n keys so the chips can render in TH or EN.
 window.MENU_OPTIONS = {
   sugar: [
-    { id: "0",   label: "No sugar" },
+    { id: "0",   label: "No sugar", i18n: "opt.sugar.0" },
     { id: "25",  label: "25%" },
     { id: "50",  label: "50%" },
     { id: "75",  label: "75%" },
@@ -267,5 +269,11 @@ window.MENU_OPTIONS = {
     { id: "150", label: "150%" },
     { id: "175", label: "175%" },
     { id: "200", label: "200%" }
+  ],
+  // Roast appears only on coffee drinks (espresso cat, hot coffees, americano-cloudy-yogurt).
+  roast: [
+    { id: "light",  label: "Light",  i18n: "opt.roast.light" },
+    { id: "medium", label: "Medium", i18n: "opt.roast.medium" },
+    { id: "dark",   label: "Dark",   i18n: "opt.roast.dark" }
   ]
 };

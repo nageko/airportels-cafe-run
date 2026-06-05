@@ -486,6 +486,36 @@ textarea.note-input {
 }
 .admin-link:active { background: var(--surface); }
 
+/* ───────── EN / TH language toggle ─────────
+   Two variants: a floating one shown on the login screen (.lang-toggle),
+   and an icon-button variant inside the menu app header (#lang-toggle-menu).
+*/
+.lang-toggle {
+  position: absolute; top: 14px; left: 14px; z-index: 4;
+  display: inline-flex; align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: color-mix(in oklch, var(--surface) 70%, transparent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.lang-toggle .lang-pill { color: var(--muted); padding: 2px 4px; transition: color .15s; }
+.lang-toggle .lang-pill.active { color: var(--fg); font-weight: 600; }
+.lang-toggle .lang-sep { color: var(--border); padding: 0 1px; }
+.lang-toggle:active { background: var(--surface); }
+
+/* In the menu header — render as a regular icon-btn shape */
+#lang-toggle-menu {
+  width: auto; padding: 0 10px; gap: 1px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+  color: var(--muted);
+}
+#lang-toggle-menu .lang-pill { color: var(--muted); padding: 2px 3px; transition: color .15s; }
+#lang-toggle-menu .lang-pill.active { color: var(--fg); font-weight: 600; }
+#lang-toggle-menu .lang-sep { color: var(--border); }
+
 /* ───────── empty / toast ───────── */
 .empty {
   padding: 40px 24px;
