@@ -125,6 +125,19 @@
       if (idx >= 0) { all[idx].status = next[all[idx].status]; writeLS(LS_ORDERS, all); }
     },
 
+    // Delete an order outright (admin only).
+    async deleteOrder(orderId) {
+      if (hasSupabase) {
+        try {
+          await sb.from("order_items").delete().eq("order_id", orderId);
+          await sb.from("orders").delete().eq("id", orderId);
+        } catch (e) { console.warn("Supabase delete failed:", e.message || e); }
+      }
+      const all = readLS(LS_ORDERS, []);
+      const filtered = all.filter(o => o.id !== orderId);
+      writeLS(LS_ORDERS, filtered);
+    },
+
     // Dev helper — wipe today's local orders.
     _resetLocal() { localStorage.removeItem(LS_ORDERS); }
   };

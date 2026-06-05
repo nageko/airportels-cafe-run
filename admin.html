@@ -169,6 +169,113 @@
       background: var(--accent);
       color: var(--accent-ink);
     }
+    .ord-foot button.del-btn {
+      background: transparent;
+      color: color-mix(in oklch, var(--cafe) 55%, transparent);
+      padding: 6px 8px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      transition: background .15s, color .15s;
+    }
+    .ord-foot button.del-btn:hover {
+      background: color-mix(in oklch, #c44123 35%, transparent);
+      color: #ffd9cc;
+    }
+    .ord-foot button.del-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* ─────────── Admin password gate ─────────── */
+    .gate-veil {
+      position: fixed; inset: 0;
+      background: var(--cafe);
+      z-index: 200;
+      display: grid; place-items: center;
+      padding: 24px;
+    }
+    .gate-card {
+      width: 100%; max-width: 380px;
+      background: color-mix(in oklch, var(--cafe-ink) 8%, transparent);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 18%, transparent);
+      border-radius: var(--r-card);
+      padding: 32px 28px;
+      text-align: center;
+    }
+    .gate-card .icon {
+      width: 56px; height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: color-mix(in oklch, var(--accent) 20%, transparent);
+      display: grid; place-items: center;
+      color: var(--accent);
+    }
+    .gate-card .icon svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .gate-card .kicker {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: color-mix(in oklch, var(--cafe-ink) 65%, transparent);
+      margin-bottom: 6px;
+    }
+    .gate-card h2 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--cafe-ink);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .gate-card .blurb {
+      font-size: 13px;
+      color: color-mix(in oklch, var(--cafe-ink) 70%, transparent);
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+    .gate-card input[type="password"] {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 16px;
+      padding: 12px 14px;
+      background: var(--cafe);
+      color: var(--cafe-ink);
+      border: 1px solid color-mix(in oklch, var(--cafe-ink) 22%, transparent);
+      border-radius: var(--r-pill);
+      letter-spacing: 0.16em;
+      text-align: center;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .gate-card input[type="password"]:focus {
+      border-color: var(--accent);
+    }
+    .gate-card .gate-err {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.06em;
+      color: #c44123;
+      margin-top: 10px;
+      min-height: 16px;
+    }
+    .gate-card button {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 18px;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: transform .12s;
+    }
+    .gate-card button:hover { transform: translateY(-1px); }
+    .gate-card .back-out {
+      margin-top: 16px;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: color-mix(in oklch, var(--cafe-ink) 55%, transparent);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .gate-card .back-out:hover { color: var(--cafe-ink); }
 
     .lane-empty {
       flex: 1;
@@ -561,7 +668,24 @@
 </head>
 <body>
   <div class="canvas-bg"></div>
-  <div class="admin-wrap">
+
+  <!-- Password gate — hardcoded "aidrink" -->
+  <div class="gate-veil" id="gate-veil">
+    <form class="gate-card" id="gate-form" autocomplete="off">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </div>
+      <div class="kicker">Staff only</div>
+      <h2>Admin access</h2>
+      <p class="blurb">Enter the admin password to view today's queue.</p>
+      <input type="password" id="gate-input" placeholder="••••••••" autocomplete="off" autofocus />
+      <div class="gate-err" id="gate-err">&nbsp;</div>
+      <button type="submit">Unlock</button>
+      <a class="back-out" href="index.html">← Back to staff app</a>
+    </form>
+  </div>
+
+  <div class="admin-wrap" id="admin-wrap" style="display:none;">
     <header class="admin-head">
       <div>
         <div class="kicker">Cafe Run · Behind the Counter</div>
@@ -630,7 +754,54 @@
   <script src="menu.js"></script>
   <script src="db.js"></script>
   <script>
+    // ─────────── Password gate ───────────
     (function () {
+      const PASSWORD = "aidrink";
+      const KEY = "airportels.admin.unlocked.v1";
+      const veil = document.getElementById("gate-veil");
+      const wrap = document.getElementById("admin-wrap");
+      const form = document.getElementById("gate-form");
+      const input = document.getElementById("gate-input");
+      const err = document.getElementById("gate-err");
+
+      function unlock() {
+        try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
+        veil.style.display = "none";
+        wrap.style.display = "";
+        document.dispatchEvent(new Event("admin:unlocked"));
+      }
+
+      // Already unlocked this session?
+      try {
+        if (sessionStorage.getItem(KEY) === "1") {
+          unlock();
+          return;
+        }
+      } catch (e) {}
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const val = input.value.trim().toLowerCase();
+        if (val === PASSWORD) {
+          err.textContent = "";
+          unlock();
+        } else {
+          err.textContent = "Wrong password.";
+          input.value = "";
+          input.focus();
+        }
+      });
+    })();
+
+    (function () {
+      // Defer all admin logic until unlocked.
+      if (document.getElementById("admin-wrap").style.display === "none") {
+        document.addEventListener("admin:unlocked", boot, { once: true });
+      } else {
+        boot();
+      }
+
+      function boot() {
       const $ = (s) => document.querySelector(s);
       const time = (iso) => {
         const d = new Date(iso); const hh = String(d.getHours()).padStart(2, "0"); const mm = String(d.getMinutes()).padStart(2, "0");
@@ -674,6 +845,9 @@
           </div>
           ${o.note ? `<div class="ord-note">${o.note}</div>` : ""}
           <div class="ord-foot">
+            <button class="del-btn" data-act="delete" data-id="${o.id}" title="Delete order" aria-label="Delete order">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
             <span class="spacer"></span>
             ${isDone
               ? `<button class="done" disabled>Done</button>`
@@ -685,6 +859,13 @@
         if (btn) btn.addEventListener("click", async () => {
           btn.disabled = true; btn.textContent = "…";
           await DB.advanceOrderStatus(o.id);
+          await load();
+        });
+        const delBtn = card.querySelector("[data-act=delete]");
+        if (delBtn) delBtn.addEventListener("click", async () => {
+          if (!confirm(`Delete order #${o.code} from ${o.staff_name}? This can't be undone.`)) return;
+          delBtn.disabled = true;
+          await DB.deleteOrder(o.id);
           await load();
         });
         return card;
@@ -983,6 +1164,7 @@
           renderSheet();
         }
       }, 8 * 1000);
+      } // end boot()
     })();
   </script>
 </body>
