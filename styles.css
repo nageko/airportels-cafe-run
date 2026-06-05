@@ -42,9 +42,9 @@ input, textarea, select { font: inherit; color: inherit; }
 ul { list-style: none; padding: 0; margin: 0; }
 a { color: inherit; }
 
-/* ───────── desktop canvas ─────────
-   On desktop, show the app as a centered phone-width column with a soft
-   contextual frame. On mobile, it just fills the screen.
+/* ───────── app shell ─────────
+   Real app — fills the viewport on mobile, sits inside a centered max-width
+   column on desktop. No prototype phone-frame.
 */
 .canvas {
   min-height: 100dvh;
@@ -53,36 +53,24 @@ a { color: inherit; }
 .canvas-bg {
   position: fixed; inset: 0; z-index: -1;
   background:
-    radial-gradient(1200px 600px at 0% -10%, color-mix(in oklch, var(--accent) 35%, transparent), transparent 60%),
-    radial-gradient(900px 500px at 100% 110%, color-mix(in oklch, var(--cafe) 18%, transparent), transparent 60%),
+    radial-gradient(1200px 600px at 0% -10%, color-mix(in oklch, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, color-mix(in oklch, var(--cafe) 10%, transparent), transparent 60%),
     var(--bg);
 }
 .phone {
   width: 100%;
-  max-width: 430px;
+  max-width: 960px;
   min-height: 100dvh;
-  background: var(--bg);
+  background: transparent;
   position: relative;
-  overflow: hidden;
 }
-@media (min-width: 700px) {
-  .phone {
-    margin: 28px 0;
-    min-height: min(880px, calc(100dvh - 56px));
-    border-radius: 44px;
-    border: 1px solid color-mix(in oklch, var(--fg) 12%, transparent);
-    box-shadow:
-      0 1px 0 color-mix(in oklch, var(--surface) 50%, transparent) inset,
-      0 30px 60px -20px color-mix(in oklch, var(--fg) 35%, transparent),
-      0 8px 20px -10px color-mix(in oklch, var(--fg) 20%, transparent);
-  }
-  .canvas { padding: 0 20px; }
+@media (min-width: 900px) {
+  .canvas { padding: 0 24px; }
 }
 
 /* ───────── screen scaffolding ───────── */
 .screen { display: none; flex-direction: column; min-height: 100dvh; }
 .screen.active { display: flex; }
-@media (min-width: 700px) { .screen { min-height: inherit; height: 100%; } }
 
 .app-header {
   position: sticky; top: 0; z-index: 5;
@@ -111,6 +99,14 @@ a { color: inherit; }
     var(--bg);
   padding: 0 24px 32px;
   justify-content: space-between;
+}
+@media (min-width: 700px) {
+  #screen-login {
+    max-width: 520px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px 48px;
+  }
 }
 .login-hero {
   padding: 80px 0 0;
@@ -217,7 +213,13 @@ a { color: inherit; }
 }
 .cat-tab.active { background: var(--fg); color: var(--cafe-ink); border-color: var(--fg); }
 
-.drink-list { padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.drink-list { padding: 4px 18px 18px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 700px) {
+  .drink-list { grid-template-columns: 1fr 1fr; gap: 12px; padding: 4px 24px 24px; }
+}
+@media (min-width: 900px) {
+  .drink-list { grid-template-columns: 1fr 1fr 1fr; }
+}
 .drink-card {
   display: grid;
   grid-template-columns: 88px 1fr;
@@ -274,7 +276,7 @@ a { color: inherit; }
   position: fixed;
   left: 50%; transform: translateX(-50%);
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  width: calc(100% - 32px); max-width: 398px;
+  width: calc(100% - 32px); max-width: 460px;
   background: var(--fg); color: var(--cafe-ink);
   border-radius: var(--r-pill);
   padding: 14px 18px 14px 20px;
@@ -282,6 +284,7 @@ a { color: inherit; }
   box-shadow: 0 12px 30px -10px color-mix(in oklch, var(--fg) 50%, transparent);
   cursor: pointer;
   transition: opacity .2s, transform .2s;
+  z-index: 50;
 }
 .cart-bar.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(20px); }
 .cart-count {
@@ -293,15 +296,10 @@ a { color: inherit; }
   font-variant-numeric: tabular-nums;
 }
 .cart-label { flex: 1; font-size: 14px; font-weight: 500; }
-@media (min-width: 700px) {
-  .cart-bar { position: absolute; }
-}
 
 /* ───────── bottom sheet (customize + cart) ─────────
-   Pinned to the viewport on mobile (the .phone wrapper grows taller than the
-   screen when the drink list is long, so position:absolute on .phone anchors
-   the sheet far below the fold). On desktop the .phone becomes a centered
-   card; we contain the sheet inside it.
+   Pinned to the viewport on every breakpoint. The shell is no longer a
+   contained phone card, so the sheets behave like a real app modal.
 */
 .sheet-veil {
   position: fixed; inset: 0; z-index: 100;
@@ -315,7 +313,7 @@ a { color: inherit; }
   left: 50%;
   bottom: 0;
   width: 100%;
-  max-width: 430px;
+  max-width: 560px;
   z-index: 101;
   background: var(--bg);
   border-radius: var(--r-sheet) var(--r-sheet) 0 0;
@@ -326,11 +324,6 @@ a { color: inherit; }
   box-shadow: 0 -10px 30px -10px color-mix(in oklch, var(--fg) 30%, transparent);
 }
 .sheet.open { transform: translate(-50%, 0); }
-@media (min-width: 700px) {
-  .sheet-veil { position: absolute; }
-  .sheet { position: absolute; left: 0; right: 0; width: auto; max-width: none; transform: translateY(100%); }
-  .sheet.open { transform: translateY(0); }
-}
 .sheet-grip { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 10px auto 0; }
 .sheet-close {
   position: absolute; top: 14px; right: 14px;
@@ -422,6 +415,14 @@ textarea.note-input {
     radial-gradient(700px 500px at 50% -10%, color-mix(in oklch, var(--accent) 55%, transparent), transparent 70%),
     var(--bg);
   padding: 0 24px 32px;
+}
+@media (min-width: 700px) {
+  #screen-confirm {
+    max-width: 520px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 32px 48px;
+  }
 }
 .confirm-inner {
   flex: 1;
