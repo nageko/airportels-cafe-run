@@ -641,9 +641,8 @@
       function describeLine(it) {
         const parts = [];
         if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
-        if (it.size)  parts.push(`Size ${it.size}`);
-        if (it.sugar) parts.push(`Sugar ${it.sugar}%`);
-        if (it.ice && it.temp === "iced")   parts.push(`Ice ${OPT.ice.find(o=>o.id===it.ice)?.label || it.ice}`);
+        if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
+          parts.push(`Sugar ${it.sugar}%`);
         if (it.milk && it.milk !== "whole") parts.push(`${OPT.milk.find(o=>o.id===it.milk)?.label || it.milk} milk`);
         if (it.item_note) parts.push(`"${it.item_note}"`);
         return parts.join(" · ");
@@ -759,14 +758,9 @@
         const opts = [];
         // temp pill comes first so it gets the colored treatment
         if (it.temp) opts.push({ text: it.temp === "iced" ? "Iced" : "Hot", kind: it.temp });
-        if (it.size)  opts.push({ text: `Size ${it.size}` });
         if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "") {
           const lbl = (OPT.sugar.find(o => o.id === String(it.sugar))?.label) || `Sugar ${it.sugar}%`;
-          opts.push({ text: lbl });
-        }
-        if (it.ice && it.temp === "iced") {
-          const lbl = OPT.ice.find(o => o.id === it.ice)?.label || it.ice;
-          opts.push({ text: `Ice: ${lbl}` });
+          opts.push({ text: `Sugar: ${lbl}` });
         }
         if (it.milk && it.milk !== "whole") {
           const lbl = OPT.milk.find(o => o.id === it.milk)?.label || it.milk;

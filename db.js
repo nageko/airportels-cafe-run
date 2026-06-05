@@ -73,7 +73,7 @@
           const rows = items.map(it => ({
             order_id: order.id,
             drink_id: it.drink_id, name: it.name,
-            size: it.size, sugar: it.sugar, ice: it.ice, milk: it.milk,
+            sugar: it.sugar, milk: it.milk,
             temp: it.temp, qty: it.qty, item_note: it.item_note || ""
           }));
           await sb.from("order_items").insert(rows);

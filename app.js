@@ -269,9 +269,7 @@
     state.customize = preset || {
       qty: 1,
       temp: drink.temps[0],
-      size: drink.opts.includes("size") ? "M" : null,
       sugar: drink.opts.includes("sugar") ? "50" : null,
-      ice: drink.opts.includes("ice") ? "normal" : null,
       milk: drink.opts.includes("milk") ? "whole" : null,
       item_note: ""
     };
@@ -290,11 +288,8 @@
     // temp
     if (drink.temps.length > 1) body.appendChild(group("Temperature", drink.temps.map(t => ({ id: t, label: t === "hot" ? "Hot" : "Iced" })), "temp"));
 
-    if (drink.opts.includes("size"))  body.appendChild(group("Size",  MENU_OPTIONS.size,  "size",  true));
-    if (drink.opts.includes("sugar")) body.appendChild(group("Sugar", MENU_OPTIONS.sugar, "sugar"));
-    if (drink.opts.includes("ice") && state.customize.temp === "iced")
-      body.appendChild(group("Ice",   MENU_OPTIONS.ice,   "ice"));
-    if (drink.opts.includes("milk"))  body.appendChild(group("Milk",  MENU_OPTIONS.milk,  "milk",  true));
+    if (drink.opts.includes("sugar")) body.appendChild(group("Sugar level", MENU_OPTIONS.sugar, "sugar"));
+    if (drink.opts.includes("milk"))  body.appendChild(group("Milk",        MENU_OPTIONS.milk,  "milk"));
 
     // qty
     const qty = document.createElement("div");
@@ -335,12 +330,6 @@
       chip.addEventListener("click", () => {
         state.customize[key] = o.id;
         row.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-selected", String(c.dataset.value === o.id)));
-        // toggle ice row visibility when temp changes — preserve other selections
-        if (key === "temp") {
-          const preserved = { ...state.customize, temp: o.id };
-          openCustomize(state.editingDrink, preserved);
-          return;
-        }
       });
       row.appendChild(chip);
     });
@@ -355,7 +344,7 @@
       name: d.name,
       qty: c.qty,
       temp: c.temp,
-      size: c.size, sugar: c.sugar, ice: c.ice, milk: c.milk,
+      sugar: c.sugar, milk: c.milk,
       item_note: c.item_note
     });
     closeSheets();
@@ -375,9 +364,8 @@
   function describeLine(it) {
     const parts = [];
     if (it.temp)  parts.push(it.temp === "iced" ? "Iced" : "Hot");
-    if (it.size)  parts.push(`Size ${it.size}`);
-    if (it.sugar) parts.push(`Sugar ${it.sugar}%`);
-    if (it.ice && it.temp === "iced")   parts.push(`Ice ${MENU_OPTIONS.ice.find(o=>o.id===it.ice)?.label || it.ice}`);
+    if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "")
+      parts.push(`Sugar ${it.sugar}%`);
     if (it.milk && it.milk !== "whole") parts.push(`${MENU_OPTIONS.milk.find(o=>o.id===it.milk)?.label || it.milk} milk`);
     if (it.item_note) parts.push(`“${it.item_note}”`);
     return parts.join(" · ");
@@ -424,6 +412,7 @@
     openSheet("#sheet-cart");
   }
   $("#cart-close").addEventListener("click", closeSheets);
+  $("#cust-close").addEventListener("click", closeSheets);
 
   // ───── send order ─────
   $("#cart-send").addEventListener("click", async () => {
@@ -431,7 +420,7 @@
     $("#cart-send").setAttribute("disabled", "true");
     const items = state.cart.map(it => ({
       drink_id: it.drink_id, name: it.name, qty: it.qty,
-      size: it.size, sugar: it.sugar, ice: it.ice, milk: it.milk,
+      sugar: it.sugar, milk: it.milk,
       temp: it.temp, item_note: it.item_note
     }));
     const note = $("#order-note").value.trim();

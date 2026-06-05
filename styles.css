@@ -319,7 +319,22 @@ a { color: inherit; }
 }
 .sheet.open { transform: translateY(0); }
 .sheet-grip { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 10px auto 0; }
-.sheet-head { padding: 14px 22px 6px; }
+.sheet-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--fg) 6%, transparent);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+  z-index: 2;
+}
+.sheet-close:hover { background: color-mix(in oklch, var(--fg) 10%, transparent); }
+.sheet-close:active { transform: scale(0.94); }
+.sheet-close svg { width: 16px; height: 16px; }
+.sheet-head { padding: 14px 56px 6px 22px; }
 .sheet-title { font-family: var(--font-display); font-size: 22px; color: var(--fg); }
 .sheet-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .sheet-body { padding: 14px 22px 12px; overflow-y: auto; flex: 1; }
