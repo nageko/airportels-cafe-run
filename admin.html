@@ -207,6 +207,356 @@
       font-variant-numeric: tabular-nums;
     }
     .totals-list .row .q { color: var(--accent); }
+
+    /* Order-sheet trigger button (in admin head) */
+    .sheet-trigger {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 9px 14px;
+      border-radius: var(--r-pill);
+      border: 0;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .15s;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+    }
+    .sheet-trigger:hover { transform: translateY(-1px); box-shadow: 0 3px 0 rgba(0,0,0,0.1); }
+    .sheet-trigger svg { width: 14px; height: 14px; }
+
+    /* ─────────── Cafe Order Sheet (screenshot view) ─────────── */
+    .cafe-sheet-veil {
+      position: fixed; inset: 0;
+      background: rgba(20, 30, 30, 0.78);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      overflow-y: auto;
+      padding: 0;
+    }
+    .cafe-sheet-veil.open { display: block; }
+
+    .cafe-sheet-toolbar {
+      position: sticky; top: 0;
+      background: rgba(20, 30, 30, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      z-index: 5;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .cafe-sheet-toolbar .filter-pills {
+      display: flex; background: rgba(255,255,255,0.08);
+      border-radius: var(--r-pill); padding: 3px; gap: 2px;
+    }
+    .cafe-sheet-toolbar .filter-pill {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      padding: 6px 12px; border-radius: var(--r-pill);
+      border: 0; background: transparent; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .cafe-sheet-toolbar .filter-pill.active {
+      background: var(--accent); color: var(--accent-ink);
+    }
+    .cafe-sheet-toolbar .spacer { flex: 1; }
+    .cafe-sheet-toolbar .tool-btn {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 0;
+      font-family: var(--font-body); font-size: 12px;
+      padding: 8px 12px; border-radius: var(--r-pill);
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background .15s;
+    }
+    .cafe-sheet-toolbar .tool-btn:hover { background: rgba(255,255,255,0.18); }
+    .cafe-sheet-toolbar .tool-btn svg { width: 13px; height: 13px; }
+    .cafe-sheet-toolbar .close-btn {
+      background: transparent; border: 0; color: white;
+      width: 36px; height: 36px; border-radius: 50%;
+      cursor: pointer; display: grid; place-items: center;
+      transition: background .15s;
+    }
+    .cafe-sheet-toolbar .close-btn:hover { background: rgba(255,255,255,0.12); }
+    .cafe-sheet-toolbar .close-btn svg { width: 18px; height: 18px; stroke: white; }
+
+    /* The screenshot canvas itself */
+    .cafe-sheet {
+      max-width: 520px;
+      margin: 30px auto 60px;
+      background: #fdf6e3;
+      color: #1f4a47;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+      font-family: var(--font-body);
+    }
+    .cs-head {
+      padding: 26px 28px 22px;
+      background: #1f4a47;
+      color: #fdf6e3;
+      position: relative;
+      overflow: hidden;
+    }
+    .cs-head::before {
+      content: ""; position: absolute; right: -20px; top: -20px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(244,193,76,0.22), transparent 65%);
+    }
+    .cs-head .brands {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(253,246,227,0.72);
+    }
+    .cs-head .brands strong { color: #f4c14c; letter-spacing: 0.18em; font-weight: 500; }
+    .cs-head h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      margin: 10px 0 4px;
+      color: #fdf6e3;
+    }
+    .cs-head .sub {
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.06em;
+      color: rgba(253,246,227,0.66);
+      font-variant-numeric: tabular-nums;
+    }
+    .cs-head .pill-row {
+      display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+    }
+    .cs-head .pill {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 5px 11px; border-radius: 999px;
+      background: rgba(244,193,76,0.18);
+      color: #f4c14c;
+      font-variant-numeric: tabular-nums;
+    }
+    .cs-head .pill.muted {
+      background: rgba(253,246,227,0.1);
+      color: rgba(253,246,227,0.82);
+    }
+
+    .cs-orders { padding: 6px 0; }
+    .cs-empty {
+      padding: 60px 28px; text-align: center;
+      color: rgba(31,74,71,0.55);
+      font-family: var(--font-display); font-style: italic;
+    }
+
+    .cs-order {
+      padding: 22px 28px 18px;
+      border-bottom: 1px dashed rgba(31,74,71,0.18);
+      position: relative;
+    }
+    .cs-order:last-child { border-bottom: 0; }
+    .cs-order.is-delivered { opacity: 0.42; }
+
+    .cs-order-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .cs-order-head .who-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .cs-order-head .code {
+      font-family: var(--font-mono);
+      font-size: 17px;
+      color: #1f4a47;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .cs-order-head .who {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: #1f4a47;
+      font-weight: 500;
+      line-height: 1.15;
+    }
+    .cs-order-head .meta {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.06em;
+      color: rgba(31,74,71,0.6);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .cs-order-head .room-tag {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 10px;
+      padding: 2px 7px; border-radius: 5px;
+      background: rgba(31,74,71,0.1);
+      color: #1f4a47;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 4px; align-self: flex-start;
+    }
+    .cs-status-tag {
+      font-family: var(--font-mono); font-size: 9.5px;
+      letter-spacing: 0.18em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    .cs-status-tag.queued    { background: #f4c14c; color: #1f4a47; }
+    .cs-status-tag.brewing   { background: rgba(31,74,71,0.15); color: #1f4a47; }
+    .cs-status-tag.delivered { background: rgba(31,74,71,0.08); color: rgba(31,74,71,0.5); }
+
+    .cs-drinks {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .cs-drink {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .cs-drink .qty {
+      font-family: var(--font-display);
+      font-size: 24px;
+      color: #f4c14c;
+      font-weight: 500;
+      line-height: 1.1;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      padding-top: 1px;
+    }
+    .cs-drink .drink-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: #1f4a47;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+    .cs-drink .drink-thai {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: rgba(31,74,71,0.7);
+      margin-top: 1px;
+      line-height: 1.3;
+    }
+    .cs-drink .opts {
+      display: flex; flex-wrap: wrap; gap: 5px 7px;
+      margin-top: 7px;
+    }
+    .cs-drink .opt {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: 0.04em;
+      padding: 3px 8px; border-radius: 4px;
+      background: rgba(31,74,71,0.08);
+      color: #1f4a47;
+    }
+    .cs-drink .opt.hot   { background: rgba(196, 65, 35, 0.14); color: #8c2f12; }
+    .cs-drink .opt.iced  { background: rgba(56, 124, 165, 0.14); color: #1e4f7c; }
+    .cs-drink .item-note {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-style: italic;
+      color: #1f4a47;
+      margin-top: 6px;
+      padding: 7px 11px;
+      background: #fff;
+      border-left: 3px solid #f4c14c;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .cs-order-note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(244,193,76,0.16);
+      border-left: 3px solid #f4c14c;
+      border-radius: 0 8px 8px 0;
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: #1f4a47;
+      line-height: 1.45;
+    }
+    .cs-order-note .lbl {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(31,74,71,0.65);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .cs-totals {
+      background: #f6e9c8;
+      padding: 22px 28px 26px;
+      border-top: 2px solid #1f4a47;
+    }
+    .cs-totals h3 {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #1f4a47;
+      margin-bottom: 12px;
+    }
+    .cs-totals-list {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .cs-totals-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(31,74,71,0.12);
+      font-family: var(--font-body); font-size: 13.5px;
+      color: #1f4a47;
+    }
+    .cs-totals-row:last-child { border-bottom: 0; }
+    .cs-totals-row .name { font-weight: 400; }
+    .cs-totals-row .count {
+      font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+      color: #f4c14c; font-size: 14px; font-weight: 500;
+      background: #1f4a47;
+      padding: 1px 9px; border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .cs-totals-grand {
+      margin-top: 14px; padding-top: 12px;
+      border-top: 1.5px solid #1f4a47;
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .cs-totals-grand .lbl {
+      font-family: var(--font-display); font-size: 15px;
+      color: #1f4a47; font-style: italic;
+    }
+    .cs-totals-grand .val {
+      font-family: var(--font-display); font-size: 26px;
+      color: #1f4a47;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .cs-foot {
+      padding: 16px 28px 22px;
+      background: #1f4a47;
+      color: rgba(253,246,227,0.6);
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.14em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 580px) {
+      .cafe-sheet { margin: 16px 12px 40px; }
+      .cs-head { padding: 22px 22px 18px; }
+      .cs-head h1 { font-size: 26px; }
+      .cs-order { padding: 18px 22px 14px; }
+      .cs-totals { padding: 18px 22px 22px; }
+      .cafe-sheet-toolbar { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+      .cafe-sheet-toolbar .tool-btn { padding: 7px 10px; font-size: 11.5px; }
+    }
   </style>
 </head>
 <body>
@@ -217,9 +567,15 @@
         <div class="kicker">Cafe Run · Behind the Counter</div>
         <h1>Today's queue</h1>
       </div>
-      <div>
-        <a class="back-link" href="index.html">← Staff view</a>
-        <div class="meta" id="admin-meta" style="margin-top: 8px;">—</div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <a class="back-link" href="index.html">← Staff view</a>
+          <button class="sheet-trigger" id="open-sheet" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+            Order sheet
+          </button>
+        </div>
+        <div class="meta" id="admin-meta">—</div>
       </div>
     </header>
 
@@ -249,6 +605,25 @@
       <h3>Roll-up · drinks ordered today</h3>
       <div class="totals-list" id="totals-list">—</div>
     </section>
+  </div>
+
+  <!-- Cafe order sheet overlay (screenshot-friendly) -->
+  <div class="cafe-sheet-veil" id="sheet-veil" role="dialog" aria-modal="true" aria-label="Cafe order sheet">
+    <div class="cafe-sheet-toolbar">
+      <div class="filter-pills" role="tablist">
+        <button class="filter-pill active" data-filter="pending" type="button">Pending</button>
+        <button class="filter-pill" data-filter="all" type="button">All today</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="tool-btn" id="copy-text" type="button" title="Copy plain text for LINE / messaging">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy text
+      </button>
+      <button class="close-btn" id="close-sheet" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="sheet-mount"></div>
   </div>
 
   <script src="config.js"></script>
@@ -360,6 +735,260 @@
 
       load();
       setInterval(load, 15 * 1000);   // soft poll
+
+      // ─────────────── Cafe Order Sheet ───────────────
+      const drinkLookup = {};
+      (window.MENU || []).forEach(d => { drinkLookup[d.id] = d; });
+
+      let sheetFilter = "pending"; // "pending" | "all"
+      let lastOrders = [];
+
+      async function refreshOrders() {
+        const orders = await DB.listTodayOrders();
+        lastOrders = orders;
+        return orders;
+      }
+
+      function thaiName(it) {
+        if (!it.drink_id) return "";
+        const d = drinkLookup[it.drink_id];
+        return d && d.thai ? d.thai : "";
+      }
+
+      function describeOpts(it) {
+        const opts = [];
+        // temp pill comes first so it gets the colored treatment
+        if (it.temp) opts.push({ text: it.temp === "iced" ? "Iced" : "Hot", kind: it.temp });
+        if (it.size)  opts.push({ text: `Size ${it.size}` });
+        if (it.sugar !== null && it.sugar !== undefined && it.sugar !== "") {
+          const lbl = (OPT.sugar.find(o => o.id === String(it.sugar))?.label) || `Sugar ${it.sugar}%`;
+          opts.push({ text: lbl });
+        }
+        if (it.ice && it.temp === "iced") {
+          const lbl = OPT.ice.find(o => o.id === it.ice)?.label || it.ice;
+          opts.push({ text: `Ice: ${lbl}` });
+        }
+        if (it.milk && it.milk !== "whole") {
+          const lbl = OPT.milk.find(o => o.id === it.milk)?.label || it.milk;
+          opts.push({ text: `${lbl} milk` });
+        }
+        return opts;
+      }
+
+      function fmtTimeShort(iso) {
+        const d = new Date(iso);
+        return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      }
+
+      function fmtDateLong() {
+        const d = new Date();
+        const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+
+      function filterOrders(orders) {
+        if (sheetFilter === "all") return orders;
+        return orders.filter(o => o.status !== "delivered");
+      }
+
+      function renderSheet() {
+        const list = filterOrders(lastOrders);
+        // Roll-up totals for filtered list
+        const totals = {};
+        let cups = 0;
+        list.forEach(o => o.items.forEach(it => {
+          const key = it.name;
+          totals[key] = (totals[key] || 0) + it.qty;
+          cups += it.qty;
+        }));
+        const totalKeys = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+
+        const ordersHtml = list.length ? list.map(o => {
+          const drinksHtml = o.items.map(it => {
+            const opts = describeOpts(it);
+            const th = thaiName(it);
+            const optsHtml = opts.map(op =>
+              `<span class="opt ${op.kind || ''}">${op.text}</span>`
+            ).join("");
+            return `
+              <div class="cs-drink">
+                <div class="qty">${it.qty}×</div>
+                <div>
+                  <div class="drink-name">${it.name}</div>
+                  ${th ? `<div class="drink-thai">${th}</div>` : ""}
+                  ${optsHtml ? `<div class="opts">${optsHtml}</div>` : ""}
+                  ${it.item_note ? `<div class="item-note">"${it.item_note}"</div>` : ""}
+                </div>
+              </div>
+            `;
+          }).join("");
+
+          const statusLabel = o.status === "queued" ? "Queued"
+                             : o.status === "brewing" ? "Brewing"
+                             : "Delivered";
+
+          return `
+            <div class="cs-order ${o.status === "delivered" ? "is-delivered" : ""}">
+              <div class="cs-order-head">
+                <div class="who-block">
+                  <div class="code">#${o.code}</div>
+                  <div class="who">${o.staff_name}</div>
+                  ${o.room ? `<span class="room-tag">${o.room}</span>` : ""}
+                </div>
+                <div class="meta">
+                  ${fmtTimeShort(o.created_at)}
+                  <div><span class="cs-status-tag ${o.status}">${statusLabel}</span></div>
+                </div>
+              </div>
+              <div class="cs-drinks">${drinksHtml}</div>
+              ${o.note ? `
+                <div class="cs-order-note">
+                  <span class="lbl">Note from staff</span>
+                  ${o.note}
+                </div>` : ""}
+            </div>
+          `;
+        }).join("") : `<div class="cs-empty">Nothing to order — all caught up.</div>`;
+
+        const totalsHtml = totalKeys.length ? `
+          <div class="cs-totals">
+            <h3>Order summary for cafe</h3>
+            <div class="cs-totals-list">
+              ${totalKeys.map(k => `
+                <div class="cs-totals-row">
+                  <span class="name">${k}</span>
+                  <span class="count">${totals[k]}</span>
+                </div>
+              `).join("")}
+            </div>
+            <div class="cs-totals-grand">
+              <span class="lbl">Total cups</span>
+              <span class="val">${cups}</span>
+            </div>
+          </div>
+        ` : "";
+
+        const filterLabel = sheetFilter === "pending" ? "Pending orders" : "All orders today";
+
+        document.querySelector("#sheet-mount").innerHTML = `
+          <div class="cafe-sheet" id="cafe-sheet-card">
+            <div class="cs-head">
+              <div class="brands"><strong>AIRPORTELS</strong> × Cafe Gather</div>
+              <h1>Cafe Run · ${filterLabel}</h1>
+              <div class="sub">${fmtDateLong()} · printed ${fmtTimeShort(new Date().toISOString())}</div>
+              <div class="pill-row">
+                <span class="pill">${list.length} order${list.length === 1 ? "" : "s"}</span>
+                <span class="pill muted">${cups} cup${cups === 1 ? "" : "s"}</span>
+              </div>
+            </div>
+            <div class="cs-orders">${ordersHtml}</div>
+            ${totalsHtml}
+            <div class="cs-foot">Please prepare for delivery · thank you ☕</div>
+          </div>
+        `;
+      }
+
+      // Build a plain-text version for LINE / SMS / clipboard
+      function buildPlainText() {
+        const list = filterOrders(lastOrders);
+        const lines = [];
+        lines.push(`AIRPORTELS × Cafe Gather — Order`);
+        lines.push(`${fmtDateLong()} · ${fmtTimeShort(new Date().toISOString())}`);
+        lines.push(`${sheetFilter === "pending" ? "Pending only" : "All today"} · ${list.length} orders`);
+        lines.push("");
+        if (!list.length) { lines.push("(no orders)"); return lines.join("\n"); }
+
+        list.forEach(o => {
+          lines.push(`#${o.code}  ${o.staff_name}${o.room ? " · " + o.room : ""}  (${fmtTimeShort(o.created_at)})`);
+          o.items.forEach(it => {
+            const th = thaiName(it);
+            lines.push(`  • ${it.qty}× ${it.name}${th ? ` (${th})` : ""}`);
+            const opts = describeOpts(it).map(o => o.text);
+            if (opts.length) lines.push(`     ${opts.join(" · ")}`);
+            if (it.item_note) lines.push(`     note: "${it.item_note}"`);
+          });
+          if (o.note) lines.push(`  📝 ${o.note}`);
+          lines.push("");
+        });
+
+        // totals
+        const totals = {};
+        let cups = 0;
+        list.forEach(o => o.items.forEach(it => {
+          totals[it.name] = (totals[it.name] || 0) + it.qty;
+          cups += it.qty;
+        }));
+        const totalKeys = Object.keys(totals).sort((a, b) => totals[b] - totals[a]);
+        if (totalKeys.length) {
+          lines.push("— Summary —");
+          totalKeys.forEach(k => lines.push(`  ${totals[k]}× ${k}`));
+          lines.push(`  Total: ${cups} cup${cups === 1 ? "" : "s"}`);
+        }
+        return lines.join("\n");
+      }
+
+      // Wire up
+      const veil = document.querySelector("#sheet-veil");
+
+      document.querySelector("#open-sheet").addEventListener("click", async () => {
+        await refreshOrders();
+        renderSheet();
+        veil.classList.add("open");
+        document.body.style.overflow = "hidden";
+      });
+
+      document.querySelector("#close-sheet").addEventListener("click", () => {
+        veil.classList.remove("open");
+        document.body.style.overflow = "";
+      });
+
+      // Click outside the sheet to close
+      veil.addEventListener("click", (e) => {
+        if (e.target === veil) {
+          veil.classList.remove("open");
+          document.body.style.overflow = "";
+        }
+      });
+
+      // Esc to close
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && veil.classList.contains("open")) {
+          veil.classList.remove("open");
+          document.body.style.overflow = "";
+        }
+      });
+
+      // Filter pill toggle
+      document.querySelectorAll(".filter-pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+          document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          sheetFilter = pill.dataset.filter;
+          renderSheet();
+        });
+      });
+
+      // Copy text → clipboard
+      document.querySelector("#copy-text").addEventListener("click", async (e) => {
+        const btn = e.currentTarget;
+        const original = btn.innerHTML;
+        try {
+          await navigator.clipboard.writeText(buildPlainText());
+          btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4 4 10-10"/></svg> Copied`;
+        } catch (err) {
+          btn.textContent = "Copy failed";
+        }
+        setTimeout(() => { btn.innerHTML = original; }, 1800);
+      });
+
+      // Keep the sheet fresh while open — re-render after every poll
+      setInterval(async () => {
+        if (veil.classList.contains("open")) {
+          await refreshOrders();
+          renderSheet();
+        }
+      }, 8 * 1000);
     })();
   </script>
 </body>
