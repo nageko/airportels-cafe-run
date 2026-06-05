@@ -10,10 +10,5 @@ window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
 // Optional: meeting rooms shown in the login picker.
 window.MEETING_ROOMS = [
-  "Boarding Gate",
-  "Runway",
-  "Hangar 01",
-  "Hangar 02",
-  "Cockpit",
-  "Lounge"
+  "Friday Workshop"
 ];
